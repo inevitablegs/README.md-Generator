@@ -1,0 +1,6 @@
+django==5.2.3
+google-generativeai==0.8.4
+python-dotenv==1.0.1
+PyGithub==2.6.1
+requests==2.32.3
+markdown==3.7
