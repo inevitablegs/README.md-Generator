@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0">Generate README.md</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.repo_url.label_tag }}
+                        {{ form.repo_url }}
+                        <div class="form-text">{{ form.repo_url.help_text }}</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Generate README
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if recent_repos %}
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h2 class="h5 mb-0">Recently Generated</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for repo in recent_repos %}
+                    <li class="list-group-item">
+                        <a href="{{ repo.url }}" target="_blank">{{ repo.url }}</a>
+                        <small class="text-muted d-block">{{ repo.created_at|timesince }} ago</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Generated README.md</h2>
+                <div>
+                    <a href="{{ repo_url }}" target="_blank" class="btn btn-sm btn-light me-2">
+                        View Repository
+                    </a>
+                    <button onclick="copyToClipboard()" class="btn btn-sm btn-light">
+                        Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="readme-preview mb-3">
+                    {{ readme|linebreaksbr }}
+                </div>
+                <pre><code>{{ readme }}</code></pre>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <a href="{% url 'home' %}" class="btn btn-secondary me-md-2">
+                        Generate Another
+                    </a>
+                    <a href="data:text/markdown;charset=utf-8,{{ readme|urlencode }}"
+                       download="README.md" class="btn btn-primary">
+                        Download README.md
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard() {
+        const text = `{{ readme|escapejs }}`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('README copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+</script>
+{% endblock %}
