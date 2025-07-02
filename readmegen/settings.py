@@ -133,3 +133,9 @@ CACHES = {
 
 # Session settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# readmegen/settings.py
+
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Or 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_SAVE_EVERY_REQUEST = True

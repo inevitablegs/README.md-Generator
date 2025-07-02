@@ -44,50 +44,7 @@ def extract_repo_info(url):
         raise ValueError("Invalid GitHub URL")
     return parts[-2], parts[-1]
 
-# --- Summarize repo content with folder + file previews ---
-def get_repo_ingestion_summary(repo, max_files=25):
-    file_summary = []
-    folder_structure = set()
-    processed_files = 0
 
-    try:
-        tree = repo.get_git_tree(sha=repo.default_branch, recursive=True).tree
-        for item in tree:
-            if processed_files >= max_files:
-                break
-
-            if item.type == 'blob':
-                folder = '/'.join(item.path.split('/')[:-1])
-                if folder:
-                    folder_structure.add(folder)
-
-                # Process readable source code and config files
-                valid_extensions = (
-                    '.py', '.js', '.ts', '.json', '.html', '.css', '.md', '.txt',
-                    '.yml', '.yaml', 'Dockerfile', 'Makefile', 'requirements.txt', 'setup.py'
-                )
-
-                if item.path.lower().endswith(valid_extensions) or item.path.lower() in valid_extensions:
-                    try:
-                        content = repo.get_contents(item.path)
-                        code = content.decoded_content.decode('utf-8', errors='ignore')
-                        snippet = code[:1500]  # Truncate large files
-                        file_summary.append(f"\n---\n📄 **{item.path}**\n```{item.path.split('.')[-1] if '.' in item.path else ''}\n{snippet}\n```\n")
-                        processed_files += 1
-                    except:
-                        continue
-    except Exception as e:
-        file_summary.append(f"\n⚠️ Error loading files: {str(e)}")
-
-    folder_tree_text = '\n'.join(sorted(folder_structure)) or "Root only"
-    code_summaries = '\n'.join(file_summary)
-
-    return f"""
-📁 **Folder Structure**
-{folder_tree_text}
-📦 **File Previews**
-{code_summaries}
-"""
 
 # --- Fetch all useful repo metadata + README ---
 def get_repo_data(owner, repo_name):
@@ -121,54 +78,93 @@ def get_repo_data(owner, repo_name):
     data['ingestion_summary'] = get_repo_ingestion_summary(repo)
     return data
 
-# --- Generate the prompt and send to Gemini ---
+# generator/services.py (updated)
+
+def get_repo_ingestion_summary(repo, max_files=25):
+    """Improved repository analysis focusing on key files"""
+    important_files = []
+    
+    try:
+        contents = repo.get_contents("")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(repo.get_contents(file_content.path))
+            else:
+                # Focus on key files only
+                key_files = [
+                    'requirements.txt', 'package.json', 'Dockerfile',
+                    'setup.py', 'Makefile', 'README.md', '.env.example',
+                    'docker-compose.yml', 'config.json'
+                ]
+                
+                if file_content.name in key_files or file_content.name.endswith(('.py', '.js', '.md')):
+                    try:
+                        content = file_content.decoded_content.decode('utf-8', errors='ignore')
+                        important_files.append({
+                            'path': file_content.path,
+                            'content': content[:1000]  # Limit content size
+                        })
+                    except:
+                        continue
+                    
+                if len(important_files) >= max_files:
+                    break
+                    
+    except Exception as e:
+        important_files.append({'error': str(e)})
+        
+    return important_files
+
 def generate_readme_content(repo_data, user_prompt=""):
-    license_info = repo_data.get('license', None)
-    license_section = f"License: {license_info}" if license_info else "No license specified"
-
+    """Improved prompt for professional README generation"""
     prompt = f"""
-You are an expert technical README.md writer. Generate a clean and informative `README.md` file for the GitHub repository described below.
-Also give a brief summary of the project files and folder structure.
-And keep it professional, concise, and easy to read. And well-structured and well formatted.
+You are an expert technical writer creating professional GitHub README.md files. 
+Generate a comprehensive, well-structured README for this project:
 
----
-🔹 Repository Name: {repo_data.get('name')}
-🔹 Description: {repo_data.get('description')}
-🔹 Languages: {', '.join(repo_data.get('languages', {}).keys())}
-🔹 Stars: {repo_data.get('stars')}
-🔹 Forks: {repo_data.get('forks')}
+**Repository Information:**
+- Name: {repo_data.get('name')}
+- Description: {repo_data.get('description') or 'No description provided'}
+- Primary Language: {next(iter(repo_data.get('languages', {}).keys()), 'Not specified')}
+- Stars: {repo_data.get('stars', 0)}
+- Forks: {repo_data.get('forks', 0)}
+- License: {repo_data.get('license', 'Not specified')}
 
----
-🗂️ Project Files & Folder Structure:
-{repo_data['ingestion_summary']}
+**Key Files Analysis:**
+{'\n'.join([f"- {f['path']}" for f in repo_data.get('ingestion_summary', []) if isinstance(f, dict)])}
 
----
-📌 Instructions:
-Generate a professional, easy-to-read `README.md` with the following sections **only**:
+**User Instructions:**
+{user_prompt if user_prompt else "None provided"}
 
-1. 🧩 **Project Title** — with emoji
-2. 📖 **Description**
-3. ✅ **Key Features** — concise bullet points
-4. 🗂️ **Folder Structure** — structured and formatted block showing the main structure
-5. ⚙️ **How to Build the Project** — clear structured and formatted commands to set up dependencies or environment
-6. ▶️ **How to Run & Use** — how to launch the application, URLs if needed
-7. 🛠️ **Technologies Used** — bullet points with a short description for each technology or framework used
+**README Requirements:**
+1. **Project Title** - Clear, descriptive name with relevant emoji
+2. **Description** - Detailed project overview (3-5 paragraphs)
+3. **Features** - Bullet points of key features (5-8 items)
+4. **Installation** - Clear setup instructions with code blocks
+5. **Usage** - How to use the project with examples
+6. **Configuration** - Environment variables or settings needed
+7. **Technologies** - Table of technologies used with brief descriptions
+8. **API Reference** - If applicable (section with endpoints)
+9. **Screenshots** - Placeholder section if applicable
+10. **Contributing** - Brief guidelines for contributors
+11. **License** - Clear license information
 
-🎯 Describe each technology briefly. Example:
-- **Django** — Web framework for Python.
-- **Bootstrap** — CSS framework for styling the UI.
-- **Google Gemini API** — Used for generating AI content like README.md.
+**Formatting Rules:**
+- Use GitHub-flavored Markdown
+- Include appropriate emojis for section headers
+- Use proper code blocks with syntax highlighting
+- Keep line length under 100 characters
+- Use tables for technology stacks
+- Include placeholder comments for visual elements
 
-⚠️ Do **not** include:
-- Badges
-- License
-- Contributing guidelines
-- GitHub links or topics
-
-Respond with valid markdown only. Do not add explanations or commentary outside the `README.md` content.
-
-{f"🔧 Extra instructions from user:\n{user_prompt}" if user_prompt else ""}
+**Important:**
+- Do not include folder structure
+- Maintain professional tone
+- Ensure technical accuracy
+- Include all essential sections
 """
+    
+    # Rest of the function remains the same...
 
 
 

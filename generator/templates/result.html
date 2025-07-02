@@ -1,34 +1,43 @@
+<!-- generator/templates/result.html (updated) -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                <h2 class="h5 mb-0">Generated README.md</h2>
-                <div>
-                    <a href="{{ repo_url }}" target="_blank" class="btn btn-sm btn-light me-2">
-                        View Repository
-                    </a>
-                    <button onclick="copyToClipboard()" class="btn btn-sm btn-light">
-                        Copy to Clipboard
-                    </button>
-                                        <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}" class="btn btn-warning">
-                        ✏️ Edit README.md
-                    </a>
-
-                </div>
+<div class="container-fluid">
+    <div class="card shadow-lg">
+        <div class="card-header bg-dark text-white d-flex justify-content-between">
+            <h2>Generated README.md</h2>
+            <div>
+                <button onclick="copyToClipboard()" class="btn btn-sm btn-light me-2">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}" 
+                   class="btn btn-sm btn-warning me-2">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{{ repo_url }}" target="_blank" class="btn btn-sm btn-light">
+                    <i class="bi bi-github"></i> View Repo
+                </a>
             </div>
-            <div class="card-body">
-                <div class="readme-preview mb-4 markdown-body">
-                    {{ readme|safe }}
-                </div>
-
-                <pre><code>{{ raw_readme }}</code></pre>
-
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                    <a href="{% url 'home' %}" class="btn btn-secondary me-md-2">Generate Another</a>
-                    <a href="data:text/markdown;charset=utf-8,{{ raw_readme|urlencode }}" download="README.md" class="btn btn-primary">Download README.md</a>
+        </div>
+        
+        <div class="card-body">
+            <div class="markdown-body p-4 border rounded bg-white">
+                {{ readme|safe }}
+            </div>
+            
+            <div class="mt-4">
+                <h5>Raw Markdown:</h5>
+                <pre class="p-3 bg-light rounded"><code>{{ raw_readme }}</code></pre>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <div>
+                    <a href="#" class="btn btn-primary" onclick="downloadReadme()">
+                        <i class="bi bi-download"></i> Download README.md
+                    </a>
                 </div>
             </div>
         </div>
@@ -36,6 +45,21 @@
 </div>
 
 <script>
+    // Improved download function
+    function downloadReadme() {
+        const content = `{{ raw_readme|escapejs }}`;
+        const blob = new Blob([content], {type: 'text/markdown'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'README.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Copy function remains the same
     function copyToClipboard() {
         const text = `{{ raw_readme|escapejs }}`;
         navigator.clipboard.writeText(text).then(() => {
