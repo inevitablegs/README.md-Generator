@@ -13,7 +13,18 @@ class RepoForm(forms.Form):
         }),
         help_text="Enter the full URL of the GitHub repository"
     )
-    
+
+    custom_prompt = forms.CharField(
+        label='Custom Instructions (Optional)',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Add features, change tone, add badges...'
+        }),
+        required=False,
+        help_text="Enter additional instructions for the README generation"
+    )
+
     def clean_repo_url(self):
         url = self.cleaned_data['repo_url']
         if not re.match(r'^https?://github\.com/[^/]+/[^/]+/?$', url):

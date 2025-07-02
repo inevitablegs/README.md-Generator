@@ -1,379 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>README Generator with Gemini</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'bounce-gentle': 'bounceGentle 0.6s ease-in-out',
-                        'pulse-slow': 'pulse 3s infinite',
-                        'success-bounce': 'successBounce 0.8s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' }
-                        },
-                        slideIn: {
-                            '0%': { transform: 'translateX(-10px)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' }
-                        },
-                        bounceGentle: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-5px)' }
-                        },
-                        successBounce: {
-                            '0%': { transform: 'scale(0.8)', opacity: '0' },
-                            '50%': { transform: 'scale(1.05)' },
-                            '100%': { transform: 'scale(1)', opacity: '1' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .hover-lift {
-            transition: all 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-        .readme-content {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 24px;
-            max-height: 500px;
-            overflow-y: auto;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-        .readme-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        .readme-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .readme-content::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        .readme-content::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        .code-block {
-            background: #2d3748;
-            color: #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            overflow-x: auto;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .copy-success {
-            animation: successBounce 0.8s ease-out;
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-    <!-- Navigation -->
-    <nav class="glass-effect sticky top-0 z-50 transition-all duration-300">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <span class="text-xl font-bold gradient-text">README Generator</span>
-                </a>
-                <div class="flex items-center space-x-6">
-                    <a href="{% url 'about' %}" class="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300 hover:scale-105 transform">
-                        About
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Generated README.md</h2>
+                <div>
+                    <a href="{{ repo_url }}" target="_blank" class="btn btn-sm btn-light me-2">
+                        View Repository
                     </a>
-                    <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse-slow"></div>
+                    <button onclick="copyToClipboard()" class="btn btn-sm btn-light">
+                        Copy to Clipboard
+                    </button>
+                                        <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}" class="btn btn-warning">
+                        ✏️ Edit README.md
+                    </a>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="readme-preview mb-4 markdown-body">
+                    {{ readme|safe }}
+                </div>
+
+                <pre><code>{{ raw_readme }}</code></pre>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <a href="{% url 'home' %}" class="btn btn-secondary me-md-2">Generate Another</a>
+                    <a href="data:text/markdown;charset=utf-8,{{ raw_readme|urlencode }}" download="README.md" class="btn btn-primary">Download README.md</a>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
+</div>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <div class="max-w-6xl mx-auto">
-            <!-- Success Header -->
-            <div class="text-center mb-8 animate-fade-in">
-                <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-success-bounce">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-2">README Generated Successfully! 🎉</h1>
-                <p class="text-gray-600 text-lg">Your professional README is ready to use</p>
-            </div>
-
-            <!-- Main Result Card -->
-            <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden hover-lift animate-slide-in mb-8">
-                <div class="bg-gradient-to-r from-green-500 to-blue-600 p-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-white">Generated README.md</h2>
-                                <p class="text-green-100">Ready to copy and use in your repository</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <a href="{{ repo_url }}" target="_blank" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all duration-300 flex items-center space-x-2 group">
-                                <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                </svg>
-                                <span class="font-medium">View Repository</span>
-                            </a>
-                            <button onclick="copyToClipboard()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all duration-300 flex items-center space-x-2 group" id="copyBtn">
-                                <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                </svg>
-                                <span class="font-medium">Copy to Clipboard</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="p-8">
-                    <!-- README Preview -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
-                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
-                            <span>Preview</span>
-                        </h3>
-                        <div class="readme-content">{{ readme|linebreaksbr }}</div>
-                    </div>
-
-                    <!-- Raw Code -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
-                            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                            </svg>
-                            <span>Raw Markdown</span>
-                        </h3>
-                        <div class="code-block" id="readmeCode">{{ readme }}</div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="{% url 'home' %}" class="bg-gradient-to-r from-gray-500 to-gray-700 text-white px-6 py-3 rounded-xl hover:from-gray-600 hover:to-gray-800 transition-all duration-300 flex items-center justify-center space-x-2 group">
-                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            <span class="font-medium">Generate Another</span>
-                        </a>
-                        <a href="data:text/markdown;charset=utf-8,{{ readme|urlencode }}" download="README.md" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2 group">
-                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <span class="font-medium">Download README.md</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tips Section -->
-            <div class="grid md:grid-cols-3 gap-6 animate-fade-in">
-                <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 hover-lift border border-white/20">
-                    <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-xl flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Pro Tip #1</h3>
-                    <p class="text-gray-600">Copy the README and paste it directly into your repository's README.md file.</p>
-                </div>
-                
-                <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 hover-lift border border-white/20">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-teal-500 rounded-xl flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Pro Tip #2</h3>
-                    <p class="text-gray-600">Feel free to customize and edit the generated README to match your project's needs.</p>
-                </div>
-                
-                <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 hover-lift border border-white/20">
-                    <div class="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Pro Tip #3</h3>
-                    <p class="text-gray-600">A good README can increase your project's visibility and attract contributors.</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-16 py-8 glass-effect">
-        <div class="container mx-auto px-4 text-center">
-            <div class="flex items-center justify-center space-x-2 mb-4">
-                <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                </div>
-                <p class="text-gray-600 font-medium">Powered by Gemini AI & Django</p>
-            </div>
-            <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
-                <span>Made with ❤️ for developers</span>
-                <span>•</span>
-                <span>Generate professional READMEs instantly</span>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        function copyToClipboard() {
-            const text = `{{ readme|escapejs }}`;
-            const copyBtn = document.getElementById('copyBtn');
-            
-            navigator.clipboard.writeText(text).then(() => {
-                // Success feedback
-                copyBtn.innerHTML = `
-                    <svg class="w-4 h-4 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="font-medium">Copied!</span>
-                `;
-                copyBtn.classList.add('copy-success');
-                
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    copyBtn.innerHTML = `
-                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                        <span class="font-medium">Copy to Clipboard</span>
-                    `;
-                    copyBtn.classList.remove('copy-success');
-                }, 2000);
-                
-                // Show toast notification
-                showToast('README copied to clipboard! 📋', 'success');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                showToast('Failed to copy to clipboard', 'error');
-            });
-        }
-
-        function showToast(message, type) {
-            const toast = document.createElement('div');
-            toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-medium transform transition-all duration-300 translate-x-full opacity-0 ${
-                type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            }`;
-            toast.textContent = message;
-            
-            document.body.appendChild(toast);
-            
-            // Animate in
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full', 'opacity-0');
-            }, 100);
-            
-            // Animate out
-            setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Add smooth scrolling and interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add hover effects to cards
-            const cards = document.querySelectorAll('.hover-lift');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-5px)';
-                });
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
-
-            // Add ripple effect to buttons
-            const buttons = document.querySelectorAll('button, a[class*="bg-gradient"]');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        left: ${x}px;
-                        top: ${y}px;
-                        background: rgba(255, 255, 255, 0.4);
-                        border-radius: 50%;
-                        transform: scale(0);
-                        animation: ripple 0.6s linear;
-                        pointer-events: none;
-                    `;
-                    
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
+<script>
+    function copyToClipboard() {
+        const text = `{{ raw_readme|escapejs }}`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('README copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
         });
-
-        // Add CSS animation for ripple effect
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-</body>
-</html>
+    }
+</script>
+{% endblock %}
