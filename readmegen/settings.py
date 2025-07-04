@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'generator',  # Custom app for README generation
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

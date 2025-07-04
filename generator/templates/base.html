@@ -4,86 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>README Generator with Gemini</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
-
-    <!-- generator/templates/base.html (updated styles) -->
-<style>
-    .markdown-body {
-        box-sizing: border-box;
-        min-width: 200px;
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 45px;
-    }
-    
-    .markdown-body pre {
-        background-color: #f6f8fa;
-        border-radius: 6px;
-        padding: 16px;
-    }
-    
-    .markdown-body table {
-        border-spacing: 0;
-        border-collapse: collapse;
-        display: block;
-        width: 100%;
-        overflow: auto;
-    }
-    
-    .markdown-body table th {
-        font-weight: 600;
-        background: #f6f8fa;
-    }
-    
-    .markdown-body table th,
-    .markdown-body table td {
-        padding: 6px 13px;
-        border: 1px solid #dfe2e5;
-    }
-    
-    .copy-btn {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    pre:hover .copy-btn {
-        opacity: 1;
-    }
-</style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">README Generator</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="{% url 'about' %}">About</a>
+
+<!-- Navigation -->
+<nav>
+    <div>
+        <div>
+            <div>
+                <a href="{% url 'home' %}">
+                    <span>README Generator</span>
+                </a>
+            </div>
+            <div>
+                <a href="{% url 'about' %}">About</a>
+                <span>Powered by Gemini AI</span>
             </div>
         </div>
-    </nav>
-
-    <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-        
-        {% block content %}{% endblock %}
     </div>
+</nav>
 
-    <footer class="mt-5 py-3 bg-light">
-        <div class="container text-center">
-            <p class="mb-0">README Generator using Gemini AI & Django</p>
+<!-- Main Content -->
+<main>
+    <div>
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div>
+            {% block content %}
+            <div>
+                <div>
+                    <h1>Generate Professional README Files</h1>
+                    <p>Transform your GitHub repositories with AI-powered README generation using Gemini AI</p>
+                    <div>
+                        <input type="text" placeholder="Enter GitHub repository URL...">
+                        <button>Generate</button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    <h3>AI-Powered</h3>
+                    <p>Uses Gemini AI to analyze your code and generate documentation</p>
+                </div>
+                <div>
+                    <h3>Professional Quality</h3>
+                    <p>Generates clean, structured README files</p>
+                </div>
+                <div>
+                    <h3>Time-Saving</h3>
+                    <p>Creates documentation in seconds</p>
+                </div>
+            </div>
+            {% endblock %}
         </div>
-    </footer>
+    </div>
+</main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Footer -->
+<footer>
+    <div>
+        <div>
+            <span>README Generator</span>
+        </div>
+        <div>
+            <p>Powered by Gemini AI & Django</p>
+            <div>
+                <a href="#">Twitter</a>
+                <a href="#">GitHub</a>
+            </div>
+        </div>
+    </div>
+    <div>
+        <p>© 2024 README Generator. Built with Django and powered by Google Gemini AI.</p>
+    </div>
+</footer>
+
 </body>
 </html>

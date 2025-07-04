@@ -88,3 +88,28 @@ def save_readme(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
+
+
+
+# generator/views.py (add this view)
+from .services import push_to_github
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def push_readme(request):
+    try:
+        repo_url = request.POST.get('repo_url')
+        readme_content = request.POST.get('readme_content')
+        
+        if not repo_url or not readme_content:
+            return JsonResponse({"success": False, "error": "Missing required parameters"})
+            
+        success, message = push_to_github(repo_url, readme_content)
+        
+        if success:
+            return JsonResponse({"success": True, "message": message})
+        else:
+            return JsonResponse({"success": False, "error": message})
+            
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})

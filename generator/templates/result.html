@@ -1,72 +1,173 @@
-<!-- generator/templates/result.html (updated) -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="card shadow-lg">
-        <div class="card-header bg-dark text-white d-flex justify-content-between">
-            <h2>Generated README.md</h2>
+<div>
+    <!-- Header -->
+    <div>
+        <div>
             <div>
-                <button onclick="copyToClipboard()" class="btn btn-sm btn-light me-2">
-                    <i class="bi bi-clipboard"></i> Copy
-                </button>
-                <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}" 
-                   class="btn btn-sm btn-warning me-2">
-                    <i class="bi bi-pencil"></i> Edit
-                </a>
-                <a href="{{ repo_url }}" target="_blank" class="btn btn-sm btn-light">
-                    <i class="bi bi-github"></i> View Repo
-                </a>
+                <h2>Generated README.md</h2>
+                <p>AI-powered documentation ready for your repository</p>
+            </div>
+            <div>
+                <button onclick="copyToClipboard()">Copy</button>
+                <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}">Edit</a>
+                <a href="{{ repo_url }}" target="_blank">View Repo</a>
             </div>
         </div>
-        
-        <div class="card-body">
-            <div class="markdown-body p-4 border rounded bg-white">
-                {{ readme|safe }}
-            </div>
-            
-            <div class="mt-4">
-                <h5>Raw Markdown:</h5>
-                <pre class="p-3 bg-light rounded"><code>{{ raw_readme }}</code></pre>
-            </div>
-            
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{% url 'home' %}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
+    </div>
+
+    <!-- Main Grid -->
+    <div>
+        <!-- Preview Section -->
+        <div>
+            <div>
                 <div>
-                    <a href="#" class="btn btn-primary" onclick="downloadReadme()">
-                        <i class="bi bi-download"></i> Download README.md
-                    </a>
+                    <h3>Preview</h3>
+                    <span>Generated</span>
+                </div>
+                <div>
+                    <div>
+                        {{ readme|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div>
+            <!-- Actions -->
+            <div>
+                <div>
+                    <h3>Actions</h3>
+                </div>
+                <div>
+                    <button onclick="downloadReadme()">Download README.md</button>
+                    <button onclick="pushToGithub()">Push to GitHub</button>
+                    <a href="{% url 'home' %}">Back to Generator</a>
+                </div>
+            </div>
+
+            <!-- Repository Info -->
+            <div>
+                <div>
+                    <h3>Repository</h3>
+                </div>
+                <div>
+                    <p>{{ repo_url|truncatechars:40 }}</p>
+                    <p>Source Repository</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div>
+                <div>
+                    <h3>Generation Stats</h3>
+                </div>
+                <div>
+                    <p>Content Length: {{ raw_readme|length }} chars</p>
+                    <p>Generated: Just now</p>
+                    <p>AI Model: Gemini AI</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Improved download function
-    function downloadReadme() {
+    <!-- Raw Markdown -->
+    <div>
+        <div>
+            <h3>Raw Markdown</h3>
+            <button onclick="copyRawMarkdown()">Copy Raw</button>
+        </div>
+        <div>
+            <pre><code>{{ raw_readme }}</code></pre>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" style="display:none;">
+        <div>
+            <div>
+                <div id="modal-icon"></div>
+                <div>
+                    <h3 id="modal-title"></h3>
+                    <p id="modal-message"></p>
+                </div>
+            </div>
+            <div>
+                <button onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    function showNotification(type, title, message) {
+        const modal = document.getElementById('notification-modal');
+        const icon = document.getElementById('modal-icon');
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-message').textContent = message;
+
+        icon.innerHTML = type === 'success'
+            ? '✔️'
+            : '❌';
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('notification-modal').style.display = 'none';
+    }
+
+    function pushToGithub() {
         const content = `{{ raw_readme|escapejs }}`;
-        const blob = new Blob([content], {type: 'text/markdown'});
+        const repoUrl = '{{ repo_url|escapejs }}';
+
+        if (confirm("Are you sure you want to push this README.md to the GitHub repository?")) {
+            fetch("{% url 'push_readme' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'repo_url': repoUrl,
+                    'readme_content': content
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      showNotification('success', 'Success!', data.message);
+                  } else {
+                      showNotification('error', 'Error', data.error);
+                  }
+              });
+        }
+    }
+
+    function copyToClipboard() {
+        const el = document.createElement('textarea');
+        el.value = `{{ raw_readme|escapejs }}`;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        alert('Copied!');
+    }
+
+    function copyRawMarkdown() {
+        copyToClipboard();
+    }
+
+    function downloadReadme() {
+        const blob = new Blob([`{{ raw_readme|escapejs }}`], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'README.md';
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-    
-    // Copy function remains the same
-    function copyToClipboard() {
-        const text = `{{ raw_readme|escapejs }}`;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('README copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
-    }
-</script>
+    </script>
+</div>
 {% endblock %}

@@ -1,48 +1,41 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<style>
-    #editor {
-        height: 80vh;
-        resize: none;
-        font-family: monospace;
-    }
-    #previewArea {
-        height: 80vh;
-        overflow-y: auto;
-    }
-</style>
+<div>
+    <h3>🛠️ Edit & Preview README.md</h3>
 
-<div class="container-fluid">
-    <h3 class="mb-3">🛠️ Edit & Preview README.md</h3>
-
-    <div class="row gx-3">
-        <!-- Editor -->
-        <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold">Markdown Code</label>
-            <textarea id="editor" class="form-control">{{ readme_content }}</textarea>
+    <div>
+        <div>
+            <label>Markdown Code</label>
+            <textarea id="editor">{{ readme_content }}</textarea>
         </div>
 
-        <!-- Preview -->
-        <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold">Live Preview</label>
-            <div id="previewArea" class="markdown-body border rounded p-3 bg-white shadow-sm">
+        <div>
+            <label>Live Preview</label>
+            <div id="previewArea">
                 Live preview here...
             </div>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between mt-3">
-        <a href="{% url 'home' %}" class="btn btn-secondary">← Back</a>
-
+    <div>
+        <a href="{% url 'home' %}">← Back</a>
         <div>
-            <a href="#" onclick="downloadReadme()" class="btn btn-outline-primary me-2">⬇️ Download</a>
-            <button class="btn btn-success" onclick="saveChanges()">💾 Save Changes</button>
+            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
+            <button onclick="saveChanges()">💾 Save Changes</button>
+        </div>
+    </div>
+
+    <div>
+        <a href="{% url 'home' %}">← Back</a>
+        <div>
+            <button onclick="pushToGithub()">Push to GitHub</button>
+            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
+            <button onclick="saveChanges()">💾 Save Changes</button>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     const editor = document.getElementById('editor');
@@ -84,6 +77,29 @@
         a.download = 'README.md';
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    function pushToGithub() {
+        if (confirm("Are you sure you want to push this README.md to the GitHub repository?")) {
+            fetch("{% url 'push_readme' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'repo_url': '{{ repo_url }}',
+                    'readme_content': editor.value
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('✅ ' + data.message);
+                  } else {
+                      alert('❌ Error: ' + data.error);
+                  }
+              });
+        }
     }
 </script>
 {% endblock %}

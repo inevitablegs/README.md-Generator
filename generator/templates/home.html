@@ -1,50 +1,110 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h2 class="h5 mb-0">Generate README.md</h2>
+<div>
+    <!-- Form Section -->
+    <div>
+        <div>
+            <div>
+                <h2>Generate README.md</h2>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        {{ form.repo_url.label_tag }}
-                        {{ form.repo_url }}
-                        <div class="form-text">{{ form.repo_url.help_text }}</div>
-                    </div>
-                    <div class="mb-3">
-                        {{ form.custom_prompt.label_tag }}
-                        {{ form.custom_prompt }}
-                        <div class="form-text">{{ form.custom_prompt.help_text }}</div>
-                    </div>
+        </div>
 
-                    <button type="submit" class="btn btn-primary">
+        <div>
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Repository URL -->
+                <div>
+                    <label>{{ form.repo_url.label }}</label>
+                    {{ form.repo_url }}
+                    {% if form.repo_url.help_text %}
+                        <p>{{ form.repo_url.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Custom Prompt -->
+                <div>
+                    <label>{{ form.custom_prompt.label }}</label>
+                    {{ form.custom_prompt }}
+                    {% if form.custom_prompt.help_text %}
+                        <p>{{ form.custom_prompt.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <div>
+                    <span>AI-powered generation</span>
+                    <button type="submit">
                         Generate README
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Repositories -->
+    {% if recent_repos %}
+    <div>
+        <div>
+            <h2>Recently Generated</h2>
+            <span>{{ recent_repos|length }} repositories</span>
         </div>
 
-        {% if recent_repos %}
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h2 class="h5 mb-0">Recently Generated</h2>
+        <div>
+            {% for repo in recent_repos %}
+            <div>
+                <div>
+                    <a href="{{ repo.url }}" target="_blank">
+                        {{ repo.url|truncatechars:60 }}
+                    </a>
+                    <div>
+                        <span>{{ repo.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                <div>
+                    <button>View</button>
+                    <a href="{{ repo.url }}" target="_blank">↗</a>
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    {% for repo in recent_repos %}
-                    <li class="list-group-item">
-                        <a href="{{ repo.url }}" target="_blank">{{ repo.url }}</a>
-                        <small class="text-muted d-block">{{ repo.created_at|timesince }} ago</small>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+            {% endfor %}
         </div>
-        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Tips -->
+    <div>
+        <div>
+            <h3>Quick Tips</h3>
+            <ul>
+                <li>Use public GitHub repository URLs for best results</li>
+                <li>Add custom prompts to tailor the README</li>
+                <li>The AI analyzes your code structure, dependencies, and documentation</li>
+            </ul>
+        </div>
     </div>
 </div>
+
+<!-- JavaScript (optional, not CSS related) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+
+    form.addEventListener('submit', function() {
+        submitButton.disabled = true;
+        submitButton.innerText = 'Generating...';
+    });
+
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+});
+</script>
 {% endblock %}
