@@ -1,38 +1,190 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div>
-    <h3>🛠️ Edit & Preview README.md</h3>
-
-    <div>
-        <div>
-            <label>Markdown Code</label>
-            <textarea id="editor">{{ readme_content }}</textarea>
-        </div>
-
-        <div>
-            <label>Live Preview</label>
-            <div id="previewArea">
-                Live preview here...
+<div class="py-8 space-y-6">
+    <!-- Header Section -->
+    <div class="github-card bg-gradient-to-r from-github-canvas-subtle to-github-canvas-subtle dark:from-github-dark-canvas-subtle dark:to-github-dark-canvas-subtle p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-2xl font-bold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                    <i class="fas fa-edit text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                    <span>Edit & Preview README.md</span>
+                </h3>
+                <p class="text-github-fg-muted dark:text-github-dark-fg-muted mt-1">Make changes to your README and see live preview</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full animate-pulse"></div>
+                <span class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Live Preview Active</span>
             </div>
         </div>
     </div>
 
-    <div>
-        <a href="{% url 'home' %}">← Back</a>
-        <div>
-            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
-            <button onclick="saveChanges()">💾 Save Changes</button>
+    <!-- Editor Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-300px)]" id="editor-container">
+        <!-- Markdown Editor -->
+        <div class="github-card overflow-hidden flex flex-col">
+            <div class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle px-6 py-4 border-b border-github-border-default dark:border-github-dark-border-default">
+                <div class="flex items-center justify-between">
+                    <label class="text-lg font-bold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                        <i class="fas fa-code text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                        <span>Markdown Editor</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <div class="px-3 py-1 bg-github-accent-fg/10 dark:bg-github-dark-accent-fg/10 text-github-accent-fg dark:text-github-dark-accent-fg rounded-full text-sm font-medium">
+                            <i class="fas fa-file-code mr-1"></i>
+                            .md
+                        </div>
+                        <button onclick="formatMarkdown()" class="github-btn text-sm">
+                            <i class="fas fa-magic mr-1"></i>Format
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 p-6 bg-white dark:bg-github-dark-canvas-default">
+                <textarea id="editor" 
+                          class="w-full h-full resize-none border-0 focus:ring-0 focus:outline-none text-sm font-mono leading-relaxed bg-transparent text-github-fg-default dark:text-github-dark-fg-default placeholder-github-fg-muted dark:placeholder-github-dark-fg-muted"
+                          placeholder="Start typing your markdown here...">{{ readme_content }}</textarea>
+            </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="github-card overflow-hidden flex flex-col" id="preview-container">
+            <div class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle px-6 py-4 border-b border-github-border-default dark:border-github-dark-border-default">
+                <div class="flex items-center justify-between">
+                    <label class="text-lg font-bold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                        <i class="fas fa-eye text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                        <span>Live Preview</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        <div class="px-3 py-1 bg-github-success-fg/10 dark:bg-github-dark-success-fg/10 text-github-success-fg dark:text-github-dark-success-fg rounded-full text-sm font-medium">
+                            <i class="fas fa-sync-alt mr-1"></i>
+                            Auto-sync
+                        </div>
+                        <button onclick="togglePreviewMode()" class="github-btn text-sm">
+                            <i class="fas fa-expand-alt mr-1"></i>
+                            <span id="preview-mode-text">Expand</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 p-6 overflow-y-auto bg-white dark:bg-github-dark-canvas-default">
+                <div id="previewArea" class="markdown-body dark:markdown-body-dark">
+                    <div class="text-center text-github-fg-muted dark:text-github-dark-fg-muted py-8">
+                        <i class="fas fa-eye text-4xl mb-4"></i>
+                        <p>Live preview will appear here...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div>
-        <a href="{% url 'home' %}">← Back</a>
-        <div>
-            <button onclick="pushToGithub()">Push to GitHub</button>
-            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
-            <button onclick="saveChanges()">💾 Save Changes</button>
+    <!-- Toolbar Section -->
+    <div class="github-card p-6">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'home' %}" class="github-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Home</span>
+                </a>
+                <div class="flex items-center space-x-2 text-sm text-github-fg-muted dark:text-github-dark-fg-muted">
+                    <i class="fas fa-save text-github-success-fg dark:text-github-dark-success-fg"></i>
+                    <span>Auto-save enabled</span>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button onclick="downloadReadme()" class="github-btn bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600">
+                    <i class="fas fa-download"></i>
+                    <span>Download</span>
+                </button>
+                <button onclick="saveChanges()" class="github-btn bg-github-success-fg hover:bg-github-success-fg/90 dark:bg-github-dark-success-fg dark:hover:bg-github-dark-success-fg/90 text-white border-github-success-fg dark:border-github-dark-success-fg">
+                    <i class="fas fa-save"></i>
+                    <span>Save Changes</span>
+                </button>
+                <button onclick="pushToGithub()" class="github-btn bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white border-gray-900 dark:border-gray-800">
+                    <i class="fab fa-github"></i>
+                    <span>Push to GitHub</span>
+                </button>
+            </div>
         </div>
+    </div>
+
+    <!-- Markdown Quick Reference -->
+    <div class="github-card bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-lg font-bold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                <i class="fas fa-question-circle text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                <span>Markdown Quick Reference</span>
+            </h4>
+            <button onclick="toggleQuickRef()" class="github-btn">
+                <i class="fas fa-chevron-down" id="quick-ref-icon"></i>
+            </button>
+        </div>
+        <div id="quick-ref-content" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Headers</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        # H1<br>
+                        ## H2<br>
+                        ### H3
+                    </code>
+                </div>
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Text Formatting</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        **bold**<br>
+                        *italic*<br>
+                        `code`
+                    </code>
+                </div>
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Lists</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        - Item 1<br>
+                        - Item 2<br>
+                        1. Numbered
+                    </code>
+                </div>
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Links</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        [Link text](URL)<br>
+                        [Link][ref]<br>
+                        [ref]: URL
+                    </code>
+                </div>
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Images</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        ![Alt text](URL)<br>
+                        ![Alt][ref]<br>
+                        [ref]: URL
+                    </code>
+                </div>
+                <div class="bg-white dark:bg-github-dark-canvas-default p-4 rounded-lg border border-github-border-default dark:border-github-dark-border-default">
+                    <h5 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Code Blocks</h5>
+                    <code class="text-github-fg-muted dark:text-github-dark-fg-muted block bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle p-2 rounded text-xs">
+                        ```language<br>
+                        code here<br>
+                        ```
+                    </code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Toast -->
+<div id="toast" class="fixed bottom-4 right-4 github-card p-4 transform translate-y-full transition-transform duration-300 z-50 shadow-lg">
+    <div class="flex items-center space-x-3">
+        <div id="toast-icon" class="w-8 h-8 rounded-full flex items-center justify-center"></div>
+        <div>
+            <p id="toast-title" class="font-semibold text-github-fg-default dark:text-github-dark-fg-default"></p>
+            <p id="toast-message" class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted"></p>
+        </div>
+        <button onclick="hideToast()" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-fg-default dark:hover:text-github-dark-fg-default">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 </div>
 
@@ -40,15 +192,92 @@
 <script>
     const editor = document.getElementById('editor');
     const preview = document.getElementById('previewArea');
+    let autoSaveTimer;
+
+    // Custom marked renderer for better GitHub-style rendering
+    const renderer = new marked.Renderer();
+    
+    // Configure marked for GitHub-style rendering
+    marked.setOptions({
+        renderer: renderer,
+        gfm: true,
+        breaks: false,
+        pedantic: false,
+        sanitize: false,
+        smartLists: true,
+        smartypants: false,
+        highlight: function(code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+                try {
+                    return hljs.highlight(code, { language: lang }).value;
+                } catch (err) {}
+            }
+            return hljs.highlightAuto(code).value;
+        }
+    });
 
     function updatePreview() {
-        preview.innerHTML = marked.parse(editor.value);
+        const content = editor.value;
+        if (content.trim()) {
+            try {
+                const html = marked.parse(content);
+                preview.innerHTML = html;
+                // Re-highlight code blocks
+                preview.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            } catch (error) {
+                console.error('Markdown parsing error:', error);
+                preview.innerHTML = '<div class="text-red-500">Error parsing markdown</div>';
+            }
+        } else {
+            preview.innerHTML = `
+                <div class="text-center text-github-fg-muted dark:text-github-dark-fg-muted py-8">
+                    <i class="fas fa-eye text-4xl mb-4"></i>
+                    <p>Start typing to see live preview...</p>
+                </div>
+            `;
+        }
     }
 
-    editor.addEventListener('input', updatePreview);
-    document.addEventListener('DOMContentLoaded', updatePreview);
+    function showToast(type, title, message) {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toast-icon');
+        const toastTitle = document.getElementById('toast-title');
+        const toastMessage = document.getElementById('toast-message');
+
+        if (type === 'success') {
+            icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-github-success-fg/10 dark:bg-github-dark-success-fg/10';
+            icon.innerHTML = '<i class="fas fa-check text-github-success-fg dark:text-github-dark-success-fg"></i>';
+        } else if (type === 'error') {
+            icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20';
+            icon.innerHTML = '<i class="fas fa-times text-red-600 dark:text-red-400"></i>';
+        } else if (type === 'info') {
+            icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-github-accent-fg/10 dark:bg-github-dark-accent-fg/10';
+            icon.innerHTML = '<i class="fas fa-info text-github-accent-fg dark:text-github-dark-accent-fg"></i>';
+        }
+
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+        
+        toast.classList.remove('translate-y-full');
+        
+        setTimeout(() => {
+            hideToast();
+        }, 3000);
+    }
+
+    function hideToast() {
+        document.getElementById('toast').classList.add('translate-y-full');
+    }
 
     function saveChanges() {
+        const saveBtn = document.querySelector('button[onclick="saveChanges()"]');
+        const originalText = saveBtn.innerHTML;
+        
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        saveBtn.disabled = true;
+
         fetch("{% url 'save_readme' %}", {
             method: 'POST',
             headers: {
@@ -59,47 +288,394 @@
                 'repo_url': '{{ repo_url }}',
                 'readme_content': editor.value
             })
-        }).then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  alert('✅ README.md saved!');
-              } else {
-                  alert('❌ Error: ' + data.error);
-              }
-          });
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', 'Saved!', 'README.md has been saved successfully.');
+            } else {
+                showToast('error', 'Error', data.error || 'Failed to save README.md');
+            }
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            showToast('error', 'Error', 'Network error occurred while saving.');
+        })
+        .finally(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        });
     }
 
     function downloadReadme() {
-        const blob = new Blob([editor.value], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'README.md';
-        a.click();
-        URL.revokeObjectURL(url);
+        try {
+            const blob = new Blob([editor.value], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'Downloaded!', 'README.md has been downloaded.');
+        } catch (error) {
+            console.error('Download error:', error);
+            showToast('error', 'Error', 'Failed to download README.md');
+        }
     }
 
     function pushToGithub() {
-        if (confirm("Are you sure you want to push this README.md to the GitHub repository?")) {
-            fetch("{% url 'push_readme' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: new URLSearchParams({
-                    'repo_url': '{{ repo_url }}',
-                    'readme_content': editor.value
-                })
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      alert('✅ ' + data.message);
-                  } else {
-                      alert('❌ Error: ' + data.error);
-                  }
-              });
+        showToast('info', 'Feature Coming Soon!', 'Direct GitHub push will be available soon.');
+    }
+
+    function formatMarkdown() {
+        try {
+            let content = editor.value;
+            // Remove excessive line breaks
+            content = content.replace(/\n\n\n+/g, '\n\n');
+            // Fix header formatting
+            content = content.replace(/^#+\s*(.+)$/gm, (match, p1) => {
+                const level = match.indexOf(' ');
+                return '#'.repeat(level) + ' ' + p1.trim();
+            });
+            // Fix list formatting
+            content = content.replace(/^[\s]*[-*+]\s+/gm, '- ');
+            content = content.replace(/^[\s]*\d+\.\s+/gm, (match) => {
+                return match.replace(/^\s+/, '');
+            });
+            
+            editor.value = content;
+            updatePreview();
+            showToast('success', 'Formatted!', 'Markdown has been formatted.');
+        } catch (error) {
+            console.error('Format error:', error);
+            showToast('error', 'Error', 'Failed to format markdown.');
         }
     }
+
+    function togglePreviewMode() {
+        const editorContainer = document.getElementById('editor-container');
+        const previewModeText = document.getElementById('preview-mode-text');
+        
+        if (editorContainer.classList.contains('lg:grid-cols-2')) {
+            editorContainer.classList.remove('lg:grid-cols-2');
+            editorContainer.classList.add('lg:grid-cols-1');
+            // Hide editor, show only preview
+            editorContainer.children[0].style.display = 'none';
+            previewModeText.textContent = 'Split View';
+        } else {
+            editorContainer.classList.remove('lg:grid-cols-1');
+            editorContainer.classList.add('lg:grid-cols-2');
+            // Show both editor and preview
+            editorContainer.children[0].style.display = 'flex';
+            previewModeText.textContent = 'Preview Only';
+        }
+    }
+
+    function toggleQuickRef() {
+        const content = document.getElementById('quick-ref-content');
+        const icon = document.getElementById('quick-ref-icon');
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            content.classList.add('hidden');
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+
+    // Auto-save functionality
+    function autoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            // Only auto-save if there's content and it's changed
+            if (editor.value.trim()) {
+                saveChanges();
+            }
+        }, 5000); // Increased to 5 seconds to avoid too frequent saves
+    }
+
+    // Theme change handler
+    function handleThemeChange() {
+        // Update preview area classes based on theme
+        const isDark = document.documentElement.classList.contains('dark');
+        const previewArea = document.getElementById('previewArea');
+        
+        if (isDark) {
+            previewArea.classList.add('markdown-body-dark');
+        } else {
+            previewArea.classList.remove('markdown-body-dark');
+        }
+    }
+
+    // Event listeners
+    editor.addEventListener('input', function() {
+        updatePreview();
+        autoSave();
+    });
+
+    // Add tab support in textarea
+    editor.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 4;
+            updatePreview();
+        }
+    });
+
+    // Listen for theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                handleThemeChange();
+            }
+        });
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePreview();
+        handleThemeChange();
+        
+        // Start observing theme changes
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    });
 </script>
+
+<!-- Additional styles for better markdown rendering -->
+<style>
+    .markdown-body {
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        word-wrap: break-word;
+    }
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3,
+    .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    .markdown-body h1 {
+        font-size: 2em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body h1 {
+        border-bottom-color: #30363d;
+    }
+
+    .markdown-body h2 {
+        font-size: 1.5em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body h2 {
+        border-bottom-color: #30363d;
+    }
+
+    .markdown-body pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        margin-bottom: 16px;
+    }
+
+    .dark .markdown-body pre {
+        background-color: #161b22;
+    }
+
+    .markdown-body code {
+        background-color: rgba(175,184,193,0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 85%;
+    }
+
+    .dark .markdown-body code {
+        background-color: rgba(110,118,129,0.4);
+    }
+
+    .markdown-body blockquote {
+        padding: 0 1em;
+        color: #656d76;
+        border-left: 0.25em solid #d1d9e0;
+        margin-bottom: 16px;
+    }
+
+    .dark .markdown-body blockquote {
+        color: #7d8590;
+        border-left-color: #30363d;
+    }
+
+    .markdown-body table {
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        width: 100%;
+    }
+
+    .markdown-body table th,
+    .markdown-body table td {
+        padding: 6px 13px;
+        border: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body table th,
+    .dark .markdown-body table td {
+        border-color: #30363d;
+    }
+
+    .markdown-body table th {
+        font-weight: 600;
+        background-color: #f6f8fa;
+    }
+
+    .dark .markdown-body table th {
+        background-color: #161b22;
+    }
+
+    .markdown-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+        padding-left: 2em;
+        margin-bottom: 16px;
+    }
+
+    .markdown-body li {
+        margin-bottom: 0.25em;
+    }
+
+    /* Custom scrollbar for editor */
+    #editor::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #editor::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .dark #editor::-webkit-scrollbar-track {
+        background: #161b22;
+    }
+
+    #editor::-webkit-scrollbar-thumb {
+        background: #d1d9e0;
+        border-radius: 4px;
+    }
+
+    .dark #editor::-webkit-scrollbar-thumb {
+        background: #30363d;
+    }
+
+    #editor::-webkit-scrollbar-thumb:hover {
+        background: #b0b0b0;
+    }
+
+    .dark #editor::-webkit-scrollbar-thumb:hover {
+        background: #484f58;
+    }
+
+    /* Preview container scrollbar */
+    #previewArea::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #previewArea::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .dark #previewArea::-webkit-scrollbar-track {
+        background: #161b22;
+    }
+
+    #previewArea::-webkit-scrollbar-thumb {
+        background: #d1d9e0;
+        border-radius: 4px;
+    }
+
+    .dark #previewArea::-webkit-scrollbar-thumb {
+        background: #30363d;
+    }
+
+    /* Syntax highlighting theme adjustments */
+    .hljs {
+        background: #f6f8fa !important;
+        color: #24292f !important;
+    }
+
+    .dark .hljs {
+        background: #161b22 !important;
+        color: #f0f6fc !important;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+        #editor-container {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        #editor-container > div {
+            min-height: 400px;
+        }
+    }
+
+    /* Loading animation for buttons */
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Enhanced toast styling */
+    #toast {
+        max-width: 350px;
+        min-width: 300px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Quick reference animation */
+    #quick-ref-content {
+        transition: all 0.3s ease;
+    }
+
+    #quick-ref-content.hidden {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+    }
+
+    #quick-ref-content:not(.hidden) {
+        opacity: 1;
+        max-height: 1000px;
+        overflow: visible;
+    }
+</style>
+
 {% endblock %}

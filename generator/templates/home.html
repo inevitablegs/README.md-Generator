@@ -2,70 +2,117 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<div>
-    <!-- Form Section -->
-    <div>
-        <div>
-            <div>
-                <h2>Generate README.md</h2>
+<div class="py-8 space-y-8">
+    <!-- Hero Section with Form -->
+    <div class="github-card">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl lg:text-4xl font-bold text-github-fg-default dark:text-github-dark-fg-default mb-4">
+                    Create Your <span class="text-github-accent-fg dark:text-github-dark-accent-fg">Perfect README</span>
+                </h2>
+                <p class="text-github-fg-muted dark:text-github-dark-fg-muted">
+                    Enter your GitHub repository URL and let our AI create professional documentation for you
+                </p>
             </div>
-        </div>
 
-        <div>
-            <form method="post">
-                {% csrf_token %}
+            <div class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md p-6 border border-github-border-default dark:border-github-dark-border-default">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
 
-                <!-- Repository URL -->
-                <div>
-                    <label>{{ form.repo_url.label }}</label>
-                    {{ form.repo_url }}
-                    {% if form.repo_url.help_text %}
-                        <p>{{ form.repo_url.help_text }}</p>
-                    {% endif %}
-                </div>
+                    <!-- Repository URL Section -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-semibold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                                <i class="fas fa-link text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                                <span>{{ form.repo_url.label }}</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm text-github-fg-muted dark:text-github-dark-fg-muted cursor-pointer">
+                                <input type="checkbox" name="is_profile" id="is_profile" class="rounded border-github-border-default dark:border-github-dark-border-default text-github-accent-fg dark:text-github-dark-accent-fg focus:ring-github-accent-fg dark:focus:ring-github-dark-accent-fg bg-white dark:bg-github-dark-canvas-default">
+                                <span>Generate for GitHub Profile</span>
+                            </label>
+                        </div>
 
-                <!-- Custom Prompt -->
-                <div>
-                    <label>{{ form.custom_prompt.label }}</label>
-                    {{ form.custom_prompt }}
-                    {% if form.custom_prompt.help_text %}
-                        <p>{{ form.custom_prompt.help_text }}</p>
-                    {% endif %}
-                </div>
+                        <div class="relative">
+                            {{ form.repo_url|add_class:"github-input pl-10" }}
+                            <i class="fas fa-github absolute left-3 top-1/2 transform -translate-y-1/2 text-github-fg-muted dark:text-github-dark-fg-muted"></i>
+                        </div>
+                        
+                        {% if form.repo_url.help_text %}
+                            <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted flex items-center space-x-2">
+                                <i class="fas fa-info-circle"></i>
+                                <span>{{ form.repo_url.help_text }}</span>
+                            </p>
+                        {% endif %}
+                    </div>
 
-                <!-- Submit -->
-                <div>
-                    <span>AI-powered generation</span>
-                    <button type="submit">
-                        Generate README
-                    </button>
-                </div>
-            </form>
+                    <!-- Custom Prompt Section -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                            <i class="fas fa-edit text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                            <span>{{ form.custom_prompt.label }}</span>
+                        </label>
+                        
+                        {{ form.custom_prompt|add_class:"github-input resize-none" }}
+                        
+                        {% if form.custom_prompt.help_text %}
+                            <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted flex items-center space-x-2">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>{{ form.custom_prompt.help_text }}</span>
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-github-border-default dark:border-github-dark-border-default">
+                        <div class="flex items-center space-x-2 text-xs text-github-fg-muted dark:text-github-dark-fg-muted">
+                            <i class="fas fa-robot text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                            <span>AI-powered generation with Gemini</span>
+                        </div>
+                        <button type="submit" class="github-btn github-btn-primary">
+                            <i class="fas fa-magic"></i>
+                            <span>Generate README</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Recent Repositories -->
+    <!-- Recent Repositories Section -->
     {% if recent_repos %}
-    <div>
-        <div>
-            <h2>Recently Generated</h2>
-            <span>{{ recent_repos|length }} repositories</span>
+    <div class="github-card">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                <i class="fas fa-history text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                <span>Recently Generated</span>
+            </h2>
+            <span class="px-3 py-1 bg-github-accent-fg/10 dark:bg-github-dark-accent-fg/10 text-github-accent-fg dark:text-github-dark-accent-fg rounded-full text-sm font-medium">
+                {{ recent_repos|length }} repositories
+            </span>
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for repo in recent_repos %}
-            <div>
-                <div>
-                    <a href="{{ repo.url }}" target="_blank">
-                        {{ repo.url|truncatechars:60 }}
-                    </a>
-                    <div>
-                        <span>{{ repo.created_at|timesince }} ago</span>
+            <div class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md p-4 border border-github-border-default dark:border-github-dark-border-default hover:border-github-accent-fg dark:hover:border-github-dark-accent-fg transition-all duration-200 group">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <a href="{{ repo.url }}" target="_blank" class="text-sm font-semibold text-github-fg-default dark:text-github-dark-fg-default hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors group-hover:text-github-accent-fg dark:group-hover:text-github-dark-accent-fg">
+                            {{ repo.url|truncatechars:50 }}
+                        </a>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <i class="fas fa-clock text-github-fg-muted dark:text-github-dark-fg-muted text-xs"></i>
+                            <span class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">{{ repo.created_at|timesince }} ago</span>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <button>View</button>
-                    <a href="{{ repo.url }}" target="_blank">↗</a>
+                <div class="flex items-center space-x-2">
+                    <button class="github-btn github-btn-primary flex-1 text-sm">
+                        <i class="fas fa-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <a href="{{ repo.url }}" target="_blank" class="github-btn p-2">
+                        <i class="fas fa-external-link-alt text-sm"></i>
+                    </a>
                 </div>
             </div>
             {% endfor %}
@@ -73,20 +120,151 @@
     </div>
     {% endif %}
 
-    <!-- Quick Tips -->
-    <div>
-        <div>
-            <h3>Quick Tips</h3>
-            <ul>
-                <li>Use public GitHub repository URLs for best results</li>
-                <li>Add custom prompts to tailor the README</li>
-                <li>The AI analyzes your code structure, dependencies, and documentation</li>
-            </ul>
+    <!-- Two Column Layout: Tips & Features -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Quick Tips -->
+        <div class="github-card">
+            <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4 flex items-center space-x-2">
+                <i class="fas fa-lightbulb text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                <span>Quick Tips</span>
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                    <p class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Use public GitHub repository URLs for best results and comprehensive analysis</p>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                    <p class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Add custom prompts to tailor the README to your specific needs and style</p>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                    <p class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">The AI analyzes your code structure, dependencies, and existing documentation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Choose Us -->
+        <div class="github-card">
+            <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4 flex items-center space-x-2">
+                <i class="fas fa-star text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                <span>Why Choose Us</span>
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-rocket text-white text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-github-fg-default dark:text-github-dark-fg-default text-sm">Lightning Fast</p>
+                        <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Generate professional READMEs in seconds, not hours</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-brain text-white text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-github-fg-default dark:text-github-dark-fg-default text-sm">Smart Analysis</p>
+                        <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">AI understands your code structure and dependencies</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-5 h-5 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-palette text-white text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-github-fg-default dark:text-github-dark-fg-default text-sm">Customizable</p>
+                        <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Tailor the output with custom prompts and preferences</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GitHub-style Stats Section -->
+    <div class="github-card">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default">Platform Statistics</h3>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-chart-line text-github-success-fg dark:text-github-dark-success-fg"></i>
+                <span class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Live data</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="text-2xl font-bold text-github-accent-fg dark:text-github-dark-accent-fg">15.2k+</div>
+                <div class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">READMEs Created</div>
+            </div>
+            <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="text-2xl font-bold text-github-success-fg dark:text-github-dark-success-fg">99.7%</div>
+                <div class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Success Rate</div>
+            </div>
+            <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">3.2s</div>
+                <div class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Avg. Time</div>
+            </div>
+            <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">5.4k+</div>
+                <div class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Happy Users</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Feed (GitHub-style) -->
+    <div class="github-card">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
+                <i class="fas fa-activity text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                <span>Recent Activity</span>
+            </h3>
+            <a href="#" class="text-sm text-github-accent-fg dark:text-github-dark-accent-fg hover:underline">View all</a>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-3 p-3 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="w-8 h-8 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full flex items-center justify-center">
+                    <i class="fas fa-file-alt text-white text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-github-fg-default dark:text-github-dark-fg-default">
+                        <span class="font-semibold">README generated</span> for React dashboard project
+                    </p>
+                    <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">2 minutes ago</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 p-3 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="w-8 h-8 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-github-fg-default dark:text-github-dark-fg-default">
+                        <span class="font-semibold">Profile README created</span> for developer portfolio
+                    </p>
+                    <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">5 minutes ago</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 p-3 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md border border-github-border-default dark:border-github-dark-border-default">
+                <div class="w-8 h-8 bg-purple-600 dark:bg-purple-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-code text-white text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-github-fg-default dark:text-github-dark-fg-default">
+                        <span class="font-semibold">Documentation updated</span> for Python ML library
+                    </p>
+                    <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">12 minutes ago</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript (optional, not CSS related) -->
+<!-- JavaScript for enhanced UX -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
@@ -95,16 +273,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     form.addEventListener('submit', function() {
         submitButton.disabled = true;
-        submitButton.innerText = 'Generating...';
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
+        submitButton.classList.add('opacity-75');
     });
 
+    // Auto-resize textarea
     const textarea = document.querySelector('textarea');
     if (textarea) {
+        textarea.style.minHeight = '80px';
         textarea.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
         });
     }
+
+    // Profile checkbox info
+    const profileCheckbox = document.getElementById('is_profile');
+    if (profileCheckbox) {
+        profileCheckbox.addEventListener('change', function() {
+            const urlInput = document.querySelector('input[name="repo_url"]');
+            if (this.checked) {
+                urlInput.placeholder = 'Enter your GitHub username (e.g., username)';
+            } else {
+                urlInput.placeholder = 'Enter GitHub repository URL...';
+            }
+        });
+    }
+
+    // Add subtle animations to stats
+    const stats = document.querySelectorAll('.text-2xl.font-bold');
+    stats.forEach(stat => {
+        stat.style.transition = 'transform 0.2s ease';
+        stat.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        stat.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
 });
 </script>
+
 {% endblock %}

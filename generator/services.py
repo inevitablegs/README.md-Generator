@@ -229,71 +229,46 @@ except Exception as e:
     print(f"WARNING: GitHub token validation failed: {str(e)}")
 
 
-# generator/services.py (update the push_to_github function)
+def generate_profile_readme(profile_url, user_prompt=""):
+    username = profile_url.strip('/').split('/')[-1]
+    g = Github(os.getenv('GITHUB_TOKEN'))
+    user = g.get_user(username)
 
-def push_to_github(repo_url, readme_content, branch="main", commit_message="Added README.md via README Generator"):
+    data = {
+        'name': user.name or username,
+        'bio': user.bio or "No bio available",
+        'followers': user.followers,
+        'following': user.following,
+        'public_repos': user.public_repos,
+        'location': user.location or "N/A",
+        'blog': user.blog or "N/A",
+        'repos': [repo.name for repo in user.get_repos()[:5]]  # Top 5
+    }
+
+    prompt = f"""
+    Create a professional GitHub Profile README.md for:
+
+    - Name: {data['name']}
+    - Bio: {data['bio']}
+    - Followers: {data['followers']}
+    - Public Repos: {data['public_repos']}
+    - Location: {data['location']}
+    - Blog: {data['blog']}
+    - Top Repositories: {', '.join(data['repos'])}
+
+    Additional Instructions:
+    {user_prompt if user_prompt else 'N/A'}
+
+    Markdown must include:
+    - Introduction with emojis
+    - Badges for followers, GitHub stats
+    - Pinned projects (top repos)
+    - Fun facts or personal message
+    - Technologies used
+    - Contact/social links
+
+    Format using GitHub-flavored Markdown.
     """
-    Push the generated README.md to the GitHub repository
-    """
-    try:
-        # First verify we have a token
-        github_token = os.getenv('GITHUB_TOKEN')
-        if not github_token:
-            return False, "GitHub token not configured in environment variables"
-            
-        owner, repo_name = extract_repo_info(repo_url)
-        g = Github(github_token)
-        
-        # Improved token verification
-        try:
-            # Get authenticated user to verify token works
-            user = g.get_user()
-            # Get token scopes if available (PyGithub doesn't always expose this)
-            try:
-                scopes = getattr(g, 'oauth_scopes', [])
-                if scopes and not ('repo' in scopes or 'public_repo' in scopes):
-                    return False, "GitHub token needs 'repo' or 'public_repo' scope"
-            except Exception as scope_error:
-                # If we can't check scopes but can get user, assume token has basic permissions
-                pass
-        except Exception as auth_error:
-            return False, f"GitHub authentication failed: {str(auth_error)}"
-        
-        # Rest of the function remains the same...
-        repo = g.get_repo(f"{owner}/{repo_name}")
-        
-        # Verify user has push access
-        try:
-            permission = repo.get_collaborator_permission(user.login)
-            if permission not in ['admin', 'write']:
-                return False, f"User has {permission} permissions, needs 'write' or 'admin'"
-        except Exception as perm_error:
-            return False, f"Permission check failed: {str(perm_error)}"
-        
-        # Check if README exists and update/create
-        try:
-            readme = repo.get_contents("README.md", ref=branch)
-            repo.update_file(
-                path="README.md",
-                message=commit_message,
-                content=readme_content,
-                sha=readme.sha,
-                branch=branch
-            )
-            return True, "README.md updated successfully"
-        except Exception as update_ex:
-            if "Not Found" not in str(update_ex):
-                return False, f"Update check failed: {str(update_ex)}"
-            try:
-                repo.create_file(
-                    path="README.md",
-                    message=commit_message,
-                    content=readme_content,
-                    branch=branch
-                )
-                return True, "README.md created successfully"
-            except Exception as create_ex:
-                return False, f"Create failed: {str(create_ex)}"
-            
-    except Exception as e:
-        return False, f"Error pushing to GitHub: {str(e)}"
+    
+    response = model.generate_content(prompt)
+    return validate_markdown(response.text)

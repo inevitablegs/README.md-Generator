@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from .forms import RepoForm
-from .services import generate_readme
+from .services import generate_readme, generate_profile_readme
 from .models import Repository
 from markdown import markdown
 
@@ -16,31 +16,37 @@ def home(request):
             try:
                 repo_url = form.cleaned_data['repo_url']
                 user_prompt = form.cleaned_data.get('custom_prompt', '')
-                readme_content = generate_readme(repo_url, user_prompt)
+                is_profile = form.cleaned_data.get('is_profile', False)
 
-                # Convert to HTML for preview
-                readme_html = markdown(readme_content)
+                if is_profile:
+                    readme_content = generate_profile_readme(repo_url, user_prompt)
+                else:
+                    readme_content = generate_readme(repo_url, user_prompt)
 
-                # Save to database
-                Repository.objects.update_or_create(
-                    url=repo_url,
-                    defaults={'readme_content': readme_content}
+                    # Save only if it's a repository (not a profile)
+                    Repository.objects.update_or_create(
+                        url=repo_url,
+                        defaults={'readme_content': readme_content}
+                    )
+
+                
+
+                readme_html = markdown(
+                    readme_content,
+                    extensions=['fenced_code', 'codehilite', 'tables'],
+                    output_format='html5'
                 )
 
                 return render(request, 'result.html', {
-                    'readme': readme_html,           # rendered HTML
-                    'raw_readme': readme_content,    # original markdown
+                    'readme': readme_html,
+                    'raw_readme': readme_content,
                     'repo_url': repo_url
                 })
             except Exception as e:
-                error_msg = str(e)
-                if "404" in error_msg and "license" in error_msg:
-                    messages.warning(request, "License info not found. Generated README without license.")
-                else:
-                    messages.error(request, f"Error: {error_msg}")
+                messages.error(request, f"Error: {str(e)}")
                 return redirect('home')
         else:
-            messages.error(request, "Please enter a valid GitHub repository URL")
+            messages.error(request, "Please enter a valid GitHub URL")
     else:
         form = RepoForm()
 
@@ -48,6 +54,7 @@ def home(request):
         'form': form,
         'recent_repos': Repository.objects.order_by('-created_at')[:5]
     })
+
 
 @never_cache
 def about(request):
@@ -88,28 +95,3 @@ def save_readme(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
-
-
-
-# generator/views.py (add this view)
-from .services import push_to_github
-
-@require_http_methods(["POST"])
-@csrf_exempt
-def push_readme(request):
-    try:
-        repo_url = request.POST.get('repo_url')
-        readme_content = request.POST.get('readme_content')
-        
-        if not repo_url or not readme_content:
-            return JsonResponse({"success": False, "error": "Missing required parameters"})
-            
-        success, message = push_to_github(repo_url, readme_content)
-        
-        if success:
-            return JsonResponse({"success": True, "message": message})
-        else:
-            return JsonResponse({"success": False, "error": message})
-            
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)})

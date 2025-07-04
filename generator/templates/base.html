@@ -4,89 +4,458 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>README Generator with Gemini</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-light.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+
+        @media (max-width: 767px) {
+            .markdown-body {
+                padding: 15px;
+            }
+        }
+
+        .markdown-preview {
+            font-family: "Segoe UI", sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        .markdown-preview h1, h2, h3 {
+            font-weight: bold;
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-preview ul, ol {
+            margin-left: 20px;
+        }
+        .markdown-preview pre {
+            background: #f6f8fa;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid #d1d9e0;
+        }
+        .markdown-preview code {
+            background: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        .markdown-preview a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        .markdown-preview a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dark mode styles */
+        .dark .markdown-preview pre {
+            background: #161b22;
+            border-color: #30363d;
+        }
+        .dark .markdown-preview code {
+            background: #161b22;
+        }
+        .dark .markdown-preview a {
+            color: #58a6ff;
+        }
+
+        /* GitHub-like button styles */
+        .github-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            background: #f6f8fa;
+            color: #24292f;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .github-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d9e0;
+        }
+        .github-btn-primary {
+            background: #2da44e;
+            color: white;
+            border-color: #2da44e;
+        }
+        .github-btn-primary:hover {
+            background: #2c974b;
+            border-color: #2c974b;
+        }
+
+        /* Dark mode button styles */
+        .dark .github-btn {
+            background: #21262d;
+            border-color: #30363d;
+            color: #f0f6fc;
+        }
+        .dark .github-btn:hover {
+            background: #30363d;
+            border-color: #484f58;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            border: 1px solid #d1d9e0;
+            border-radius: 12px;
+            background: #f6f8fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .dark .theme-toggle {
+            background: #21262d;
+            border-color: #30363d;
+        }
+        .dark .theme-toggle::after {
+            left: 26px;
+            background: #f0f6fc;
+        }
+
+        /* GitHub-like container */
+        .github-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* GitHub-like header */
+        .github-header {
+            border-bottom: 1px solid #d1d9e0;
+            background: #ffffff;
+        }
+        .dark .github-header {
+            background: #0d1117;
+            border-color: #30363d;
+        }
+
+        /* GitHub-like card */
+        .github-card {
+            background: #ffffff;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+        .dark .github-card {
+            background: #0d1117;
+            border-color: #30363d;
+        }
+
+        /* GitHub-like input */
+        .github-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #24292f;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .github-input:focus {
+            outline: none;
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+        }
+        .dark .github-input {
+            background: #0d1117;
+            border-color: #30363d;
+            color: #f0f6fc;
+        }
+        .dark .github-input:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'github-canvas-default': '#ffffff',
+                        'github-canvas-subtle': '#f6f8fa',
+                        'github-border-default': '#d1d9e0',
+                        'github-fg-default': '#24292f',
+                        'github-fg-muted': '#656d76',
+                        'github-accent-fg': '#0969da',
+                        'github-success-fg': '#2da44e',
+                        'github-dark-canvas-default': '#0d1117',
+                        'github-dark-canvas-subtle': '#161b22',
+                        'github-dark-border-default': '#30363d',
+                        'github-dark-fg-default': '#f0f6fc',
+                        'github-dark-fg-muted': '#7d8590',
+                        'github-dark-accent-fg': '#58a6ff',
+                        'github-dark-success-fg': '#3fb950',
+                    }
+                }
+            }
+        }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        // Initialize theme immediately
+        initTheme();
+
+        // Initialize after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
 </head>
-<body>
+<body class="bg-white dark:bg-github-dark-canvas-default text-github-fg-default dark:text-github-dark-fg-default transition-colors duration-300">
 
 <!-- Navigation -->
-<nav>
-    <div>
-        <div>
-            <div>
-                <a href="{% url 'home' %}">
+<nav class="github-header sticky top-0 z-50 backdrop-blur-md">
+    <div class="github-container">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'home' %}" class="flex items-center space-x-3 text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors">
+                    <div class="w-8 h-8 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-md flex items-center justify-center">
+                        <i class="fas fa-file-alt text-white text-sm"></i>
+                    </div>
                     <span>README Generator</span>
                 </a>
             </div>
-            <div>
-                <a href="{% url 'about' %}">About</a>
-                <span>Powered by Gemini AI</span>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'about' %}" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors font-medium text-sm">
+                    <i class="fas fa-info-circle mr-2"></i>About
+                </a>
+                <div class="flex items-center space-x-2 px-3 py-1 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-full border border-github-border-default dark:border-github-dark-border-default">
+                    <i class="fas fa-robot text-github-accent-fg dark:text-github-dark-accent-fg text-sm"></i>
+                    <span class="text-sm font-medium text-github-fg-muted dark:text-github-dark-fg-muted">Powered by Gemini AI</span>
+                </div>
+                <button onclick="toggleTheme()" class="theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-sun absolute top-1 left-1 text-xs text-yellow-500 dark:opacity-0 opacity-100 transition-opacity"></i>
+                    <i class="fas fa-moon absolute top-1 right-1 text-xs text-blue-400 dark:opacity-100 opacity-0 transition-opacity"></i>
+                </button>
             </div>
         </div>
     </div>
 </nav>
 
 <!-- Main Content -->
-<main>
-    <div>
-        {% if messages %}
-            <div>
-                {% for message in messages %}
-                    <div>
-                        <p>{{ message }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <div>
-            {% block content %}
-            <div>
-                <div>
-                    <h1>Generate Professional README Files</h1>
-                    <p>Transform your GitHub repositories with AI-powered README generation using Gemini AI</p>
-                    <div>
-                        <input type="text" placeholder="Enter GitHub repository URL...">
-                        <button>Generate</button>
-                    </div>
+<main class="min-h-screen">
+    <!-- Messages -->
+    {% if messages %}
+        <div class="github-container pt-4">
+            {% for message in messages %}
+                <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md flex items-center space-x-3">
+                    <i class="fas fa-info-circle text-blue-500 dark:text-blue-400"></i>
+                    <p class="text-blue-800 dark:text-blue-200">{{ message }}</p>
                 </div>
-            </div>
-
-            <div>
-                <div>
-                    <h3>AI-Powered</h3>
-                    <p>Uses Gemini AI to analyze your code and generate documentation</p>
-                </div>
-                <div>
-                    <h3>Professional Quality</h3>
-                    <p>Generates clean, structured README files</p>
-                </div>
-                <div>
-                    <h3>Time-Saving</h3>
-                    <p>Creates documentation in seconds</p>
-                </div>
-            </div>
-            {% endblock %}
+            {% endfor %}
         </div>
+    {% endif %}
+
+    <!-- Content Block -->
+    <div class="github-container">
+        {% block content %}
+        <!-- Hero Section -->
+        <div class="text-center py-16 lg:py-20">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl lg:text-5xl font-bold text-github-fg-default dark:text-github-dark-fg-default mb-6">
+                    Generate <span class="text-github-accent-fg dark:text-github-dark-accent-fg">Professional</span> README Files
+                </h1>
+                <p class="text-lg text-github-fg-muted dark:text-github-dark-fg-muted mb-8 max-w-2xl mx-auto">
+                    Transform your GitHub repositories with AI-powered README generation using Google Gemini AI. Create stunning documentation in seconds.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
+                    <div class="flex-1 relative">
+                        <input type="text" 
+                               placeholder="Enter GitHub repository URL..." 
+                               class="github-input text-base py-3 pl-12 pr-4">
+                        <i class="fas fa-link absolute left-4 top-1/2 transform -translate-y-1/2 text-github-fg-muted dark:text-github-dark-fg-muted"></i>
+                    </div>
+                    <button class="github-btn github-btn-primary px-6 py-3 text-base font-medium">
+                        <i class="fas fa-magic"></i>
+                        <span>Generate README</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="py-12 mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="github-card text-center group">
+                    <div class="w-12 h-12 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-md flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                        <i class="fas fa-robot text-white text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">AI-Powered Generation</h3>
+                    <p class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Uses advanced Gemini AI to analyze your code structure and generate comprehensive documentation automatically.</p>
+                </div>
+                <div class="github-card text-center group">
+                    <div class="w-12 h-12 bg-github-success-fg dark:bg-github-dark-success-fg rounded-md flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                        <i class="fas fa-star text-white text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Professional Quality</h3>
+                    <p class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Generates clean, well-structured README files that follow industry best practices and GitHub standards.</p>
+                </div>
+                <div class="github-card text-center group">
+                    <div class="w-12 h-12 bg-purple-600 dark:bg-purple-500 rounded-md flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                        <i class="fas fa-clock text-white text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2">Time-Saving</h3>
+                    <p class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Creates comprehensive documentation in seconds, saving you hours of manual writing and formatting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- GitHub Stats Style Section -->
+        <div class="github-card mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default">Why Choose Our Generator?</h2>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chart-line text-github-success-fg dark:text-github-dark-success-fg"></i>
+                    <span class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Trusted by developers</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md">
+                    <div class="text-2xl font-bold text-github-accent-fg dark:text-github-dark-accent-fg">10k+</div>
+                    <div class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">READMEs Generated</div>
+                </div>
+                <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md">
+                    <div class="text-2xl font-bold text-github-success-fg dark:text-github-dark-success-fg">99.9%</div>
+                    <div class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Accuracy Rate</div>
+                </div>
+                <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md">
+                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">5 sec</div>
+                    <div class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Average Time</div>
+                </div>
+                <div class="text-center p-4 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md">
+                    <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">24/7</div>
+                    <div class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted">Available</div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
     </div>
 </main>
 
 <!-- Footer -->
-<footer>
-    <div>
-        <div>
-            <span>README Generator</span>
-        </div>
-        <div>
-            <p>Powered by Gemini AI & Django</p>
+<footer class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle border-t border-github-border-default dark:border-github-dark-border-default">
+    <div class="github-container py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="md:col-span-2">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-8 h-8 bg-github-accent-fg dark:bg-github-dark-accent-fg rounded-md flex items-center justify-center">
+                        <i class="fas fa-file-alt text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default">README Generator</span>
+                </div>
+                <p class="text-github-fg-muted dark:text-github-dark-fg-muted mb-4 max-w-md text-sm">
+                    The ultimate AI-powered tool for creating professional README files. Transform your GitHub repositories with stunning documentation generated by Google Gemini AI.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="#" class="github-btn p-2">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="github-btn p-2">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="github-btn p-2">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
             <div>
-                <a href="#">Twitter</a>
-                <a href="#">GitHub</a>
+                <h4 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4">Product</h4>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'home' %}" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Generator</a></li>
+                    <li><a href="{% url 'about' %}" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">About</a></li>
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Features</a></li>
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Pricing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4">Support</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Documentation</a></li>
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Help Center</a></li>
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Contact</a></li>
+                    <li><a href="#" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-accent-fg dark:hover:text-github-dark-accent-fg transition-colors text-sm">Status</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-github-border-default dark:border-github-dark-border-default mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">
+                © 2024 README Generator. Built with Django and powered by Google Gemini AI.
+            </p>
+            <div class="flex items-center space-x-2 mt-4 md:mt-0">
+                <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Powered by</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-robot text-github-accent-fg dark:text-github-dark-accent-fg text-sm"></i>
+                    <span class="text-github-accent-fg dark:text-github-dark-accent-fg font-medium text-sm">Gemini AI</span>
+                </div>
+                <span class="text-github-fg-muted dark:text-github-dark-fg-muted">•</span>
+                <i class="fab fa-python text-github-success-fg dark:text-github-dark-success-fg text-sm"></i>
+                <span class="text-github-success-fg dark:text-github-dark-success-fg font-medium text-sm">Django</span>
             </div>
         </div>
     </div>
-    <div>
-        <p>© 2024 README Generator. Built with Django and powered by Google Gemini AI.</p>
-    </div>
 </footer>
-
 </body>
 </html>
