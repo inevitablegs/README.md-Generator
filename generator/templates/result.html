@@ -3,12 +3,12 @@
 {% block content %}
 <div class="py-8 space-y-8">
     <!-- Header Section -->
-    <div class="github-card bg-gradient-to-r from-github-success-fg/5 to-github-accent-fg/5 dark:from-github-dark-success-fg/5 dark:to-github-dark-accent-fg/5">
+    <div class="github-card bg-gradient-to-r from-github-success-fg/5 to-github-accent-fg/5 dark:from-github-dark-success-fg/5 dark:to-github-dark-accent-fg/5 p-6">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div class="text-center lg:text-left">
-                <div class="flex items-center justify-center lg:justify-start space-x-2 mb-3">
-                    <div class="w-8 h-8 bg-github-success-fg dark:bg-github-dark-success-fg rounded-full flex items-center justify-center">
-                        <i class="fas fa-check text-white text-sm"></i>
+                <div class="flex items-center justify-center lg:justify-start space-x-3 mb-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-github-success-fg to-github-accent-fg dark:from-github-dark-success-fg dark:to-github-dark-accent-fg rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-check text-white text-lg"></i>
                     </div>
                     <h2 class="text-3xl font-bold text-github-fg-default dark:text-github-dark-fg-default">README Generated Successfully!</h2>
                 </div>
@@ -25,10 +25,15 @@
                         <i class="fas fa-clock text-github-accent-fg dark:text-github-dark-accent-fg"></i>
                         <span>Just now</span>
                     </span>
+                    <span>•</span>
+                    <span class="flex items-center space-x-1">
+                        <i class="fas fa-file-alt text-github-accent-fg dark:text-github-dark-accent-fg"></i>
+                        <span>{{ raw_readme|length }} chars</span>
+                    </span>
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                <button onclick="copyToClipboard()" class="github-btn github-btn-primary">
+                <button onclick="copyToClipboard()" class="github-btn bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600">
                     <i class="fas fa-copy"></i>
                     <span>Copy</span>
                 </button>
@@ -55,21 +60,27 @@
                             <i class="fas fa-eye text-github-accent-fg dark:text-github-dark-accent-fg"></i>
                             <span>Live Preview</span>
                         </h3>
-                        <span class="px-3 py-1 bg-github-success-fg/10 dark:bg-github-dark-success-fg/10 text-github-success-fg dark:text-github-dark-success-fg rounded-full text-sm font-medium border border-github-success-fg/20 dark:border-github-dark-success-fg/20">
-                            <i class="fas fa-check-circle mr-1"></i>Generated
-                        </span>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 bg-github-success-fg/10 dark:bg-github-dark-success-fg/10 text-github-success-fg dark:text-github-dark-success-fg rounded-full text-sm font-medium border border-github-success-fg/20 dark:border-github-dark-success-fg/20">
+                                <i class="fas fa-check-circle mr-1"></i>Generated
+                            </span>
+                            <button onclick="togglePreviewMode()" class="github-btn text-sm">
+                                <i class="fas fa-expand-alt mr-1"></i>
+                                <span id="preview-mode-text">Fullscreen</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="markdown-body markdown-preview">
-                        {{ readme|safe }}
+                <div class="p-6 bg-white dark:bg-github-dark-canvas-default" id="preview-container">
+                    <div class="markdown-body dark:markdown-body-dark" id="markdown-preview">
+                        <!-- Markdown content will be rendered here -->
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Sidebar (1/3 width) -->
-        <div class="space-y-6">
+        <div class="space-y-6" id="sidebar">
             <!-- Quick Actions -->
             <div class="github-card">
                 <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4 flex items-center space-x-2">
@@ -77,7 +88,7 @@
                     <span>Quick Actions</span>
                 </h3>
                 <div class="space-y-3">
-                    <button onclick="downloadReadme()" class="w-full github-btn github-btn-primary justify-center">
+                    <button onclick="downloadReadme()" class="w-full github-btn bg-github-success-fg hover:bg-github-success-fg/90 dark:bg-github-dark-success-fg dark:hover:bg-github-dark-success-fg/90 text-white border-github-success-fg dark:border-github-dark-success-fg justify-center">
                         <i class="fas fa-download"></i>
                         <span>Download README.md</span>
                     </button>
@@ -98,15 +109,21 @@
                     <i class="fas fa-info-circle text-github-accent-fg dark:text-github-dark-accent-fg"></i>
                     <span>Repository Info</span>
                 </h3>
-                <div class="space-y-3">
+                <div class="space-y-4">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle rounded-md flex items-center justify-center border border-github-border-default dark:border-github-dark-border-default">
-                            <i class="fab fa-github text-github-fg-muted dark:text-github-dark-fg-muted"></i>
+                        <div class="w-12 h-12 bg-gradient-to-br from-github-canvas-subtle to-github-accent-fg/10 dark:from-github-dark-canvas-subtle dark:to-github-dark-accent-fg/10 rounded-lg flex items-center justify-center border border-github-border-default dark:border-github-dark-border-default">
+                            <i class="fab fa-github text-github-fg-default dark:text-github-dark-fg-default text-lg"></i>
                         </div>
                         <div class="flex-1">
-                            <p class="font-medium text-github-fg-default dark:text-github-dark-fg-default break-all text-sm">{{ repo_url|truncatechars:40 }}</p>
+                            <p class="font-medium text-github-fg-default dark:text-github-dark-fg-default break-all text-sm">{{ repo_url|truncatechars:30 }}</p>
                             <p class="text-xs text-github-fg-muted dark:text-github-dark-fg-muted">Source Repository</p>
                         </div>
+                    </div>
+                    <div class="pt-2 border-t border-github-border-default dark:border-github-dark-border-default">
+                        <a href="{{ repo_url }}" target="_blank" class="w-full github-btn text-sm justify-center">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Visit Repository</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -118,18 +135,26 @@
                     <span>Generation Stats</span>
                 </h3>
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Content Length</span>
+                    <div class="flex items-center justify-between py-2 border-b border-github-border-default dark:border-github-dark-border-default">
+                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm flex items-center space-x-2">
+                            <i class="fas fa-align-left text-xs"></i>
+                            <span>Content Length</span>
+                        </span>
                         <span class="font-medium text-github-fg-default dark:text-github-dark-fg-default text-sm">{{ raw_readme|length }} chars</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">Generated</span>
+                    <div class="flex items-center justify-between py-2 border-b border-github-border-default dark:border-github-dark-border-default">
+                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm flex items-center space-x-2">
+                            <i class="fas fa-clock text-xs"></i>
+                            <span>Generated</span>
+                        </span>
                         <span class="font-medium text-github-fg-default dark:text-github-dark-fg-default text-sm">Just now</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm">AI Model</span>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-github-fg-muted dark:text-github-dark-fg-muted text-sm flex items-center space-x-2">
+                            <i class="fas fa-robot text-xs"></i>
+                            <span>AI Model</span>
+                        </span>
                         <div class="flex items-center space-x-1">
-                            <i class="fas fa-robot text-github-accent-fg dark:text-github-dark-accent-fg text-sm"></i>
                             <span class="font-medium text-github-fg-default dark:text-github-dark-fg-default text-sm">Gemini AI</span>
                         </div>
                     </div>
@@ -137,17 +162,17 @@
             </div>
 
             <!-- Share Options -->
-            <div class="github-card bg-github-accent-fg/5 dark:bg-github-dark-accent-fg/5">
+            <div class="github-card bg-gradient-to-br from-github-accent-fg/5 to-github-success-fg/5 dark:from-github-dark-accent-fg/5 dark:to-github-dark-success-fg/5">
                 <h3 class="text-lg font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-4 flex items-center space-x-2">
                     <i class="fas fa-share-alt text-github-accent-fg dark:text-github-dark-accent-fg"></i>
                     <span>Share</span>
                 </h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <button class="github-btn bg-blue-500 hover:bg-blue-600 text-white border-blue-500 text-sm justify-center">
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="shareOnTwitter()" class="github-btn bg-blue-500 hover:bg-blue-600 text-white border-blue-500 text-sm justify-center">
                         <i class="fab fa-twitter"></i>
                         <span>Twitter</span>
                     </button>
-                    <button class="github-btn bg-blue-700 hover:bg-blue-800 text-white border-blue-700 text-sm justify-center">
+                    <button onclick="shareOnLinkedIn()" class="github-btn bg-blue-700 hover:bg-blue-800 text-white border-blue-700 text-sm justify-center">
                         <i class="fab fa-linkedin"></i>
                         <span>LinkedIn</span>
                     </button>
@@ -157,22 +182,28 @@
     </div>
 
     <!-- Raw Markdown Section -->
-    <div class="github-card overflow-hidden">
+    <div class="github-card overflow-hidden" id="raw-markdown-section">
         <div class="bg-github-canvas-subtle dark:bg-github-dark-canvas-subtle px-6 py-4 border-b border-github-border-default dark:border-github-dark-border-default">
             <div class="flex items-center justify-between">
                 <h3 class="text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default flex items-center space-x-2">
                     <i class="fas fa-code text-github-accent-fg dark:text-github-dark-accent-fg"></i>
                     <span>Raw Markdown</span>
                 </h3>
-                <button onclick="copyRawMarkdown()" class="github-btn github-btn-primary">
-                    <i class="fas fa-copy"></i>
-                    <span>Copy Raw</span>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="copyRawMarkdown()" class="github-btn bg-orange-500 hover:bg-orange-600 text-white border-orange-500">
+                        <i class="fas fa-copy"></i>
+                        <span>Copy Raw</span>
+                    </button>
+                    <button onclick="toggleRawMarkdown()" class="github-btn">
+                        <i class="fas fa-chevron-down" id="raw-markdown-icon"></i>
+                        <span id="raw-markdown-text">Show</span>
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="p-6">
+        <div class="p-6 hidden" id="raw-markdown-content">
             <div class="relative">
-                <pre class="bg-github-dark-canvas-default text-github-dark-fg-default dark:bg-gray-900 dark:text-gray-100 p-6 rounded-md overflow-x-auto text-sm leading-relaxed border border-github-border-default dark:border-github-dark-border-default"><code>{{ raw_readme }}</code></pre>
+                <pre class="bg-github-dark-canvas-default text-github-dark-fg-default dark:bg-gray-900 dark:text-gray-100 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed border border-github-border-default dark:border-github-dark-border-default custom-scrollbar"><code id="raw-markdown-code">{{ raw_readme }}</code></pre>
                 <div class="absolute top-4 right-4">
                     <button onclick="copyRawMarkdown()" class="github-btn bg-github-dark-canvas-subtle hover:bg-github-dark-canvas-default text-github-dark-fg-muted hover:text-github-dark-fg-default text-xs">
                         <i class="fas fa-copy"></i>
@@ -184,54 +215,143 @@
     </div>
 </div>
 
-<!-- Success/Error Modal -->
-<div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="github-card max-w-md w-full mx-4 shadow-2xl">
-        <div class="text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" id="modal-icon-container">
-                <div id="modal-icon" class="text-3xl"></div>
-            </div>
-            <h3 id="modal-title" class="text-xl font-semibold text-github-fg-default dark:text-github-dark-fg-default mb-2"></h3>
-            <p id="modal-message" class="text-github-fg-muted dark:text-github-dark-fg-muted mb-6"></p>
-            <button onclick="closeModal()" class="github-btn github-btn-primary">
-                Close
-            </button>
+<!-- Success/Error Toast -->
+<div id="toast" class="fixed bottom-4 right-4 github-card p-4 transform translate-y-full transition-transform duration-300 z-50 shadow-lg backdrop-blur-md">
+    <div class="flex items-center space-x-3">
+        <div id="toast-icon" class="w-8 h-8 rounded-full flex items-center justify-center"></div>
+        <div>
+            <p id="toast-title" class="font-semibold text-github-fg-default dark:text-github-dark-fg-default"></p>
+            <p id="toast-message" class="text-sm text-github-fg-muted dark:text-github-dark-fg-muted"></p>
         </div>
+        <button onclick="hideToast()" class="text-github-fg-muted dark:text-github-dark-fg-muted hover:text-github-fg-default dark:hover:text-github-dark-fg-default">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 </div>
 
-<!-- Scripts -->
+<!-- Load required libraries -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-function showNotification(type, title, message) {
-    const modal = document.getElementById('notification-modal');
-    const iconContainer = document.getElementById('modal-icon-container');
-    const icon = document.getElementById('modal-icon');
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-message').textContent = message;
+// Initialize marked with GitHub-style configuration
+const renderer = new marked.Renderer();
 
-    if (type === 'success') {
-        iconContainer.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-github-success-fg/10 dark:bg-github-dark-success-fg/10 border border-github-success-fg/20 dark:border-github-dark-success-fg/20';
-        icon.innerHTML = '✅';
-    } else {
-        iconContainer.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
-        icon.innerHTML = '❌';
+marked.setOptions({
+    renderer: renderer,
+    gfm: true,
+    breaks: false,
+    pedantic: false,
+    sanitize: false,
+    smartLists: true,
+    smartypants: false,
+    highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return hljs.highlight(code, { language: lang }).value;
+            } catch (err) {}
+        }
+        return hljs.highlightAuto(code).value;
     }
+});
 
-    modal.classList.remove('hidden');
+// Raw markdown content
+const rawMarkdownContent = `{{ raw_readme|escapejs }}`;
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    renderMarkdown();
+    handleThemeChange();
+    
+    // Start observing theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                handleThemeChange();
+            }
+        });
+    });
+    
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+});
+
+function renderMarkdown() {
+    const previewElement = document.getElementById('markdown-preview');
+    if (rawMarkdownContent.trim()) {
+        try {
+            const html = marked.parse(rawMarkdownContent);
+            previewElement.innerHTML = html;
+            
+            // Re-highlight code blocks
+            previewElement.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        } catch (error) {
+            console.error('Markdown parsing error:', error);
+            previewElement.innerHTML = '<div class="text-red-500">Error parsing markdown</div>';
+        }
+    } else {
+        previewElement.innerHTML = `
+            <div class="text-center text-github-fg-muted dark:text-github-dark-fg-muted py-8">
+                <i class="fas fa-file-alt text-4xl mb-4"></i>
+                <p>No content to preview</p>
+            </div>
+        `;
+    }
 }
 
-function closeModal() {
-    document.getElementById('notification-modal').classList.add('hidden');
+function handleThemeChange() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const previewArea = document.getElementById('markdown-preview');
+    
+    if (isDark) {
+        previewArea.classList.add('markdown-body-dark');
+    } else {
+        previewArea.classList.remove('markdown-body-dark');
+    }
+}
+
+function showToast(type, title, message) {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    const toastTitle = document.getElementById('toast-title');
+    const toastMessage = document.getElementById('toast-message');
+
+    if (type === 'success') {
+        icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-github-success-fg/10 dark:bg-github-dark-success-fg/10';
+        icon.innerHTML = '<i class="fas fa-check text-github-success-fg dark:text-github-dark-success-fg"></i>';
+    } else if (type === 'error') {
+        icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20';
+        icon.innerHTML = '<i class="fas fa-times text-red-600 dark:text-red-400"></i>';
+    } else if (type === 'info') {
+        icon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-github-accent-fg/10 dark:bg-github-dark-accent-fg/10';
+        icon.innerHTML = '<i class="fas fa-info text-github-accent-fg dark:text-github-dark-accent-fg"></i>';
+    }
+
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    
+    toast.classList.remove('translate-y-full');
+    
+    setTimeout(() => {
+        hideToast();
+    }, 3000);
+}
+
+function hideToast() {
+    document.getElementById('toast').classList.add('translate-y-full');
 }
 
 function copyToClipboard() {
     const el = document.createElement('textarea');
-    el.value = `{{ raw_readme|escapejs }}`;
+    el.value = rawMarkdownContent;
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    showNotification('success', 'Copied!', 'README content has been copied to your clipboard.');
+    showToast('success', 'Copied!', 'README content has been copied to your clipboard.');
 }
 
 function copyRawMarkdown() {
@@ -239,33 +359,344 @@ function copyRawMarkdown() {
 }
 
 function downloadReadme() {
-    const blob = new Blob([`{{ raw_readme|escapejs }}`], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'README.md';
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification('success', 'Downloaded!', 'README.md has been downloaded to your device.');
+    try {
+        const blob = new Blob([rawMarkdownContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'README.md';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('success', 'Downloaded!', 'README.md has been downloaded to your device.');
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast('error', 'Error', 'Failed to download README.md');
+    }
 }
 
 function pushToGithub() {
-    showNotification('success', 'Feature Coming Soon!', 'Direct GitHub push functionality will be available in the next update.');
+    showToast('info', 'Feature Coming Soon!', 'Direct GitHub push functionality will be available in the next update.');
 }
 
-// Close modal when clicking outside
-document.getElementById('notification-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeModal();
+function togglePreviewMode() {
+    const sidebar = document.getElementById('sidebar');
+    const rawMarkdownSection = document.getElementById('raw-markdown-section');
+    const previewModeText = document.getElementById('preview-mode-text');
+    const mainContainer = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-3');
+    
+    if (sidebar.style.display === 'none') {
+        // Show sidebar and raw markdown
+        sidebar.style.display = 'block';
+        rawMarkdownSection.style.display = 'block';
+        mainContainer.classList.remove('lg:grid-cols-1');
+        mainContainer.classList.add('lg:grid-cols-3');
+        previewModeText.textContent = 'Fullscreen';
+    } else {
+        // Hide sidebar and raw markdown
+        sidebar.style.display = 'none';
+        rawMarkdownSection.style.display = 'none';
+        mainContainer.classList.remove('lg:grid-cols-3');
+        mainContainer.classList.add('lg:grid-cols-1');
+        previewModeText.textContent = 'Exit Fullscreen';
     }
-});
+}
 
-// Initialize syntax highlighting
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof hljs !== 'undefined') {
-        hljs.highlightAll();
+function toggleRawMarkdown() {
+    const content = document.getElementById('raw-markdown-content');
+    const icon = document.getElementById('raw-markdown-icon');
+    const text = document.getElementById('raw-markdown-text');
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        text.textContent = 'Hide';
+    } else {
+        content.classList.add('hidden');
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        text.textContent = 'Show';
+    }
+}
+
+function shareOnTwitter() {
+    const text = `Just generated an awesome README for my project using AI! 🚀`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+
+function shareOnLinkedIn() {
+    const text = `Just generated an awesome README for my project using AI!`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank');
+}
+
+// Close toast when clicking outside
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('toast').contains(e.target)) {
+        hideToast();
     }
 });
 </script>
+
+<!-- Enhanced CSS Styles -->
+<style>
+    /* Markdown Body Styles - Enhanced from edit.html */
+    .markdown-body {
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        word-wrap: break-word;
+        color: #24292f;
+    }
+
+    .dark .markdown-body {
+        color: #f0f6fc;
+    }
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3,
+    .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #1f2328;
+    }
+
+    .dark .markdown-body h1, .dark .markdown-body h2, .dark .markdown-body h3,
+    .dark .markdown-body h4, .dark .markdown-body h5, .dark .markdown-body h6 {
+        color: #f0f6fc;
+    }
+
+    .markdown-body h1 {
+        font-size: 2em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body h1 {
+        border-bottom-color: #30363d;
+    }
+
+    .markdown-body h2 {
+        font-size: 1.5em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body h2 {
+        border-bottom-color: #30363d;
+    }
+
+    .markdown-body h3 {
+        font-size: 1.25em;
+    }
+
+    .markdown-body h4 {
+        font-size: 1em;
+    }
+
+    .markdown-body h5 {
+        font-size: 0.875em;
+    }
+
+    .markdown-body h6 {
+        font-size: 0.85em;
+        color: #656d76;
+    }
+
+    .dark .markdown-body h6 {
+        color: #7d8590;
+    }
+
+    .markdown-body p {
+        margin-bottom: 16px;
+    }
+
+    .markdown-body pre {
+        background-color: #f6f8fa;
+        border-radius: 8px;
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        margin-bottom: 16px;
+        border: 1px solid #d1d9e0;
+    }
+
+    .dark .markdown-body pre {
+        background-color: #161b22;
+        border-color: #30363d;
+    }
+
+    .markdown-body code {
+        background-color: rgba(175,184,193,0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 6px;
+        font-size: 85%;
+        font-family: ui-monospace,SFMono-Regular,"SF Mono",Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    }
+
+    .dark .markdown-body code {
+        background-color: rgba(110,118,129,0.4);
+    }
+
+    .markdown-body pre code {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-size: 100%;
+        color: inherit;
+    }
+
+    .markdown-body blockquote {
+        padding: 0 16px;
+        color: #656d76;
+        border-left: 4px solid #d1d9e0;
+        margin: 16px 0;
+    }
+
+    .dark .markdown-body blockquote {
+        color: #7d8590;
+        border-left-color: #30363d;
+    }
+
+    .markdown-body table {
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        width: 100%;
+        overflow: auto;
+    }
+
+    .markdown-body table th,
+    .markdown-body table td {
+        padding: 8px 16px;
+        border: 1px solid #d1d9e0;
+        text-align: left;
+    }
+
+    .dark .markdown-body table th,
+    .dark .markdown-body table td {
+        border-color: #30363d;
+    }
+
+    .markdown-body table th {
+        font-weight: 600;
+        background-color: #f6f8fa;
+    }
+
+    .dark .markdown-body table th {
+        background-color: #161b22;
+    }
+
+    .markdown-body table tr:nth-child(even) {
+        background-color: #f6f8fa;
+    }
+
+    .dark .markdown-body table tr:nth-child(even) {
+        background-color: #161b22;
+    }
+
+    .markdown-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 16px 0;
+        border-radius: 8px;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+        padding-left: 32px;
+        margin-bottom: 16px;
+    }
+
+    .markdown-body li {
+        margin-bottom: 4px;
+    }
+
+    .markdown-body a {
+        color: #0969da;
+        text-decoration: none;
+    }
+
+    .markdown-body a:hover {
+        text-decoration: underline;
+    }
+
+    .dark .markdown-body a {
+        color: #58a6ff;
+    }
+
+    .markdown-body hr {
+        border: 0;
+        height: 1px;
+        background: #d1d9e0;
+        margin: 24px 0;
+    }
+
+    .dark .markdown-body hr {
+        background: #30363d;
+    }
+
+    /* Custom scrollbar */
+    .markdown-body pre {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d9e0 transparent;
+    }
+    .markdown-body pre::-webkit-scrollbar {
+        width: 8px;
+    }
+    .markdown-body pre::-webkit-scrollbar-thumb {
+        background-color: #d1d9e0;
+        border-radius: 4px;
+    }
+    .markdown-body pre::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    /* Custom scrollbar for dark mode */
+    .dark .markdown-body pre {
+        scrollbar-color: #30363d transparent;
+    }
+    .dark .markdown-body pre::-webkit-scrollbar-thumb {
+        background-color: #30363d;
+    }
+    .dark .markdown-body pre::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    /* Loading animation for buttons */
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Enhanced toast styling */
+    #toast {
+        max-width: 350px;
+        min-width: 300px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Quick reference animation */
+    #quick-ref-content {
+        transition: all 0.3s ease;
+    }
+
+    #quick-ref-content.hidden {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+    }
+
+    #quick-ref-content:not(.hidden) {
+        opacity: 1;
+        max-height: 1000px;
+        overflow: visible;
+    }
+</style>
 
 {% endblock %}
