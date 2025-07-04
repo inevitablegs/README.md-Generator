@@ -1,0 +1,1520 @@
+Directory structure:
+└── readmegen/
+    ├── README.md
+    ├── db.sqlite3
+    ├── manage.py
+    ├── requirements.txt
+    ├── generator/
+    │   ├── __init__.py
+    │   ├── admin.py
+    │   ├── apps.py
+    │   ├── forms.py
+    │   ├── models.py
+    │   ├── services.py
+    │   ├── tests.py
+    │   ├── urls.py
+    │   ├── views.py
+    │   ├── migrations/
+    │   │   ├── 0001_initial.py
+    │   │   └── __init__.py
+    │   └── templates/
+    │       ├── base.html
+    │       ├── edit.html
+    │       ├── home.html
+    │       └── result.html
+    └── readmegen/
+        ├── __init__.py
+        ├── asgi.py
+        ├── settings.py
+        ├── urls.py
+        └── wsgi.py
+
+================================================
+FILE: README.md
+================================================
+# README.md-Generator 📝
+
+A Python-based application for generating professional-quality README.md files for GitHub repositories.  This tool streamlines the process of creating well-structured and informative README files, ensuring consistency and clarity across your projects.
+
+## Description
+
+This project provides a robust and flexible solution for automating the creation of README.md files.  It leverages Django's framework for structuring the application and allows for customization to fit diverse project needs. The generator can handle various aspects of a README, from project description and feature lists to installation instructions and contributing guidelines.  This eliminates the manual effort involved in crafting README files, allowing developers to focus on core project development.  The application is designed to be easily extensible, allowing for the addition of new features and functionalities as required.  Future development will include support for more advanced README features, such as interactive elements and dynamic content generation.
+
+
+## Features ✨
+
+*   Automated generation of README.md files.
+*   Customizable templates for different project types.
+*   Support for various markdown features.
+*   Easy integration with existing workflows.
+*   Clear and concise output.
+*   Extensible architecture for future enhancements.
+*   Comprehensive error handling and logging.
+*   Support for multiple programming languages.
+
+
+## Installation 📦
+
+1.  Clone the repository:
+
+    ```bash
+    git clone https://github.com/yourusername/README.md-Generator.git
+    ```
+
+2.  Navigate to the project directory:
+
+    ```bash
+    cd README.md-Generator
+    ```
+
+3.  Create a virtual environment (recommended):
+
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+
+4.  Install dependencies:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+5.  Run migrations:
+
+    ```bash
+    python manage.py migrate
+    ```
+
+
+## Usage ⚙️
+
+After installation, you can run the application using the following command:
+
+```bash
+python manage.py runserver
+```
+
+*(Further usage instructions will be added here, detailing the application's interface and input parameters.)*
+
+
+## Configuration ⚙️
+
+The application utilizes settings defined in `readmegen/settings.py`.  Environment variables can be used to override these settings.  Further configuration options will be documented in future releases.  *(Specific environment variables and their purpose will be detailed here.)*
+
+
+## Technologies 🛠️
+
+| Technology       | Description                                      |
+|-----------------|--------------------------------------------------|
+| Python           | Programming language                             |
+| Django           | Web framework                                     |
+| Markdown         | Markup language for formatting README files       |
+| Git              | Version control system                           |
+| PostgreSQL/MySQL/SQLite | Database (choose one; default is SQLite)      |
+
+
+## API Reference 🔗
+
+*(This section will be populated with details on any APIs exposed by the application.)*
+
+
+## Screenshots 📸
+
+*[Placeholder for screenshots of the application's interface]*
+
+
+## Contributing 🤝
+
+Contributions are welcome! Please follow these guidelines:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature.
+3.  Commit your changes with clear and concise messages.
+4.  Submit a pull request.
+
+
+## License 📄
+
+*[This project is currently unlicensed.  Choose an appropriate license (e.g., MIT, GPL) and include the license text here.]*
+
+
+
+================================================
+FILE: db.sqlite3
+================================================
+[Non-text file]
+
+
+================================================
+FILE: manage.py
+================================================
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'readmegen.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+================================================
+FILE: requirements.txt
+================================================
+django==5.2.3
+google-generativeai==0.8.4
+python-dotenv==1.0.1
+PyGithub==2.6.1
+requests==2.32.3
+markdown==3.7
+
+
+================================================
+FILE: generator/__init__.py
+================================================
+
+
+
+================================================
+FILE: generator/admin.py
+================================================
+from django.contrib import admin
+
+# Register your models here.
+
+
+
+================================================
+FILE: generator/apps.py
+================================================
+from django.apps import AppConfig
+
+
+class GeneratorConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'generator'
+
+
+
+================================================
+FILE: generator/forms.py
+================================================
+from django import forms
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+import re
+
+class RepoForm(forms.Form):
+    repo_url = forms.URLField(
+        label='GitHub Repository URL',
+        widget=forms.URLInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'https://github.com/username/repo',
+            'autocomplete': 'off'
+        }),
+        help_text="Enter the full URL of the GitHub repository"
+    )
+
+    custom_prompt = forms.CharField(
+        label='Custom Instructions (Optional)',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Add features, change tone, add badges...'
+        }),
+        required=False,
+        help_text="Enter additional instructions for the README generation"
+    )
+
+    def clean_repo_url(self):
+        url = self.cleaned_data['repo_url']
+        if not re.match(r'^https?://github\.com/[^/]+/[^/]+/?$', url):
+            raise ValidationError("Please enter a valid GitHub repository URL")
+        return url
+
+
+
+================================================
+FILE: generator/models.py
+================================================
+from django.db import models
+
+# Create your models here.
+from django.db import models
+from django.core.validators import URLValidator
+
+class Repository(models.Model):
+    url = models.URLField(
+        max_length=255,
+        validators=[URLValidator()],
+        unique=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    readme_content = models.TextField(blank=True)
+    language_stats = models.JSONField(default=dict, blank=True)
+    topics = models.JSONField(default=list, blank=True)
+    
+    def __str__(self):
+        return self.url
+    
+    class Meta:
+        verbose_name_plural = "Repositories"
+        ordering = ['-created_at']
+
+
+================================================
+FILE: generator/services.py
+================================================
+import os
+import re
+import google.generativeai as genai
+from github import Github
+from dotenv import load_dotenv
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from markdown import markdown
+from html.parser import HTMLParser
+
+load_dotenv()
+
+genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# --- Helper class to validate markdown content ---
+class HTMLFilter(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.text = []
+
+    def handle_data(self, d):
+        self.text.append(d)
+
+    def get_data(self):
+        return ''.join(self.text)
+
+def validate_markdown(content):
+    try:
+        html = markdown(content)
+        f = HTMLFilter()
+        f.feed(html)
+        clean_text = f.get_data().strip()
+        if not clean_text or len(clean_text) < 50:
+            raise ValueError("Generated content is too short or invalid")
+        return content
+    except Exception as e:
+        raise ValidationError(f"Markdown validation failed: {str(e)}")
+
+# --- Extract owner/repo from URL ---
+def extract_repo_info(url):
+    parts = url.strip('/').split('/')
+    if len(parts) < 2:
+        raise ValueError("Invalid GitHub URL")
+    return parts[-2], parts[-1]
+
+
+
+# --- Fetch all useful repo metadata + README ---
+def get_repo_data(owner, repo_name):
+    g = Github(os.getenv('GITHUB_TOKEN'))
+    repo = g.get_repo(f"{owner}/{repo_name}")
+
+    data = {
+        'description': repo.description or 'No description provided.',
+        'languages': repo.get_languages(),
+        'topics': repo.get_topics(),
+        'license': None,
+        'stars': repo.stargazers_count,
+        'forks': repo.forks_count,
+        'watchers': repo.watchers_count,
+        'default_branch': repo.default_branch,
+    }
+
+    try:
+        license_info = repo.get_license()
+        if license_info:
+            data['license'] = license_info.license.key if license_info.license else None
+    except Exception:
+        pass
+
+    try:
+        readme = repo.get_readme()
+        data['existing_readme'] = readme.decoded_content.decode('utf-8')
+    except:
+        data['existing_readme'] = ""
+
+    data['ingestion_summary'] = get_repo_ingestion_summary(repo)
+    return data
+
+# generator/services.py (updated)
+
+def get_repo_ingestion_summary(repo, max_files=25):
+    """Improved repository analysis focusing on key files"""
+    important_files = []
+    
+    try:
+        contents = repo.get_contents("")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(repo.get_contents(file_content.path))
+            else:
+                # Focus on key files only
+                key_files = [
+                    'requirements.txt', 'package.json', 'Dockerfile',
+                    'setup.py', 'Makefile', 'README.md', '.env.example',
+                    'docker-compose.yml', 'config.json'
+                ]
+                
+                if file_content.name in key_files or file_content.name.endswith(('.py', '.js', '.md')):
+                    try:
+                        content = file_content.decoded_content.decode('utf-8', errors='ignore')
+                        important_files.append({
+                            'path': file_content.path,
+                            'content': content[:1000]  # Limit content size
+                        })
+                    except:
+                        continue
+                    
+                if len(important_files) >= max_files:
+                    break
+                    
+    except Exception as e:
+        important_files.append({'error': str(e)})
+        
+    return important_files
+
+def generate_readme_content(repo_data, user_prompt="", repo_url=""):
+    """Improved prompt for professional README generation"""
+    prompt = f"""
+You are a professional technical writer specializing in GitHub documentation.
+
+Generate a clean, well-formatted `README.md` file for the following repository:
+
+---
+
+📁 **Repository Metadata**:
+- **Name**: {repo_data.get('name')}
+- **Description**: {repo_data.get('description') or 'No description provided'}
+- **Languages**: {', '.join(repo_data.get('languages', {}).keys())}
+- **Stars**: ⭐ {repo_data.get('stars', 0)}
+- **Forks**: 🍴 {repo_data.get('forks', 0)}
+- **License**: {repo_data.get('license', 'Not specified')}
+- **GitHub URL**: {repo_url}
+
+---
+
+🧠 **Project Analysis (Key Files)**:
+{chr(10).join([f"- {f['path']}" for f in repo_data.get('ingestion_summary', []) if isinstance(f, dict)])}
+
+---
+
+📝 **User’s Custom Prompt**:
+{user_prompt if user_prompt else 'N/A'}
+
+---
+
+📌 **README Must Include**:
+1. Project title with emoji
+2. Description: 2-4 paragraphs
+3. Features (bullet points)
+4. Installation instructions (include real repo URL: `git clone {repo_url}`)
+5. Usage with code examples
+6. Configuration if needed
+7. Technologies table
+8. Screenshots (placeholder)
+9. Contributing guidelines
+10. License section
+11. Do **not** include folder structure
+
+---
+
+🧾 **Formatting Rules**:
+- Use GitHub-flavored Markdown
+- Emojis in headings
+- Code blocks with language syntax
+- Limit lines to 100 chars
+- Use tables for technologies
+- Clear, professional tone
+"""
+    
+    # Rest of the function remains the same...
+
+
+
+    response = model.generate_content(
+        prompt,
+        safety_settings={
+            'HARM_CATEGORY_HARASSMENT': 'BLOCK_NONE',
+            'HARM_CATEGORY_HATE_SPEECH': 'BLOCK_NONE',
+            'HARM_CATEGORY_SEXUALLY_EXPLICIT': 'BLOCK_NONE',
+            'HARM_CATEGORY_DANGEROUS_CONTENT': 'BLOCK_NONE',
+        },
+        generation_config={
+            'temperature': 0.7,
+            'top_p': 0.9,
+            'max_output_tokens': 2048,
+        }
+    )
+
+    if not response.text:
+        raise ValueError("Gemini did not return any content")
+
+    return validate_markdown(response.text)
+
+# --- Main entry point used by views.py ---
+def generate_readme(repo_url, user_prompt=""):
+    cache_key = f"readme_{repo_url}_{user_prompt}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        owner, repo_name = extract_repo_info(repo_url)
+        repo_data = get_repo_data(owner, repo_name)
+        repo_data['name'] = repo_name
+        readme_content = generate_readme_content(repo_data, user_prompt, repo_url)
+        cache.set(cache_key, readme_content, timeout=86400)
+        return readme_content
+    except Exception as e:
+        raise Exception(f"Failed to generate README: {str(e)}")
+    
+    
+# generator/services.py (add at module level after imports)
+load_dotenv()
+
+# Validate GitHub token on startup
+try:
+    github_token = os.getenv('GITHUB_TOKEN')
+    if github_token:
+        g = Github(github_token)
+        # Simple verification by getting authenticated user
+        user = g.get_user()
+        print(f"GitHub token validated for user: {user.login}")
+    else:
+        print("WARNING: GITHUB_TOKEN environment variable not set")
+except Exception as e:
+    print(f"WARNING: GitHub token validation failed: {str(e)}")
+
+
+# generator/services.py (update the push_to_github function)
+
+def push_to_github(repo_url, readme_content, branch="main", commit_message="Added README.md via README Generator"):
+    """
+    Push the generated README.md to the GitHub repository
+    """
+    try:
+        # First verify we have a token
+        github_token = os.getenv('GITHUB_TOKEN')
+        if not github_token:
+            return False, "GitHub token not configured in environment variables"
+            
+        owner, repo_name = extract_repo_info(repo_url)
+        g = Github(github_token)
+        
+        # Improved token verification
+        try:
+            # Get authenticated user to verify token works
+            user = g.get_user()
+            # Get token scopes if available (PyGithub doesn't always expose this)
+            try:
+                scopes = getattr(g, 'oauth_scopes', [])
+                if scopes and not ('repo' in scopes or 'public_repo' in scopes):
+                    return False, "GitHub token needs 'repo' or 'public_repo' scope"
+            except Exception as scope_error:
+                # If we can't check scopes but can get user, assume token has basic permissions
+                pass
+        except Exception as auth_error:
+            return False, f"GitHub authentication failed: {str(auth_error)}"
+        
+        # Rest of the function remains the same...
+        repo = g.get_repo(f"{owner}/{repo_name}")
+        
+        # Verify user has push access
+        try:
+            permission = repo.get_collaborator_permission(user.login)
+            if permission not in ['admin', 'write']:
+                return False, f"User has {permission} permissions, needs 'write' or 'admin'"
+        except Exception as perm_error:
+            return False, f"Permission check failed: {str(perm_error)}"
+        
+        # Check if README exists and update/create
+        try:
+            readme = repo.get_contents("README.md", ref=branch)
+            repo.update_file(
+                path="README.md",
+                message=commit_message,
+                content=readme_content,
+                sha=readme.sha,
+                branch=branch
+            )
+            return True, "README.md updated successfully"
+        except Exception as update_ex:
+            if "Not Found" not in str(update_ex):
+                return False, f"Update check failed: {str(update_ex)}"
+            try:
+                repo.create_file(
+                    path="README.md",
+                    message=commit_message,
+                    content=readme_content,
+                    branch=branch
+                )
+                return True, "README.md created successfully"
+            except Exception as create_ex:
+                return False, f"Create failed: {str(create_ex)}"
+            
+    except Exception as e:
+        return False, f"Error pushing to GitHub: {str(e)}"
+
+
+================================================
+FILE: generator/tests.py
+================================================
+from django.test import TestCase
+
+# Create your tests here.
+# generator/tests.py
+
+class ReadmeGenerationTest(TestCase):
+    def test_clone_link_in_readme(self):
+        from .services import generate_readme_content
+        data = {
+            'name': 'TestRepo',
+            'description': 'Test description',
+            'languages': {'Python': 1000},
+            'stars': 5,
+            'forks': 2,
+            'license': 'mit',
+            'ingestion_summary': [{'path': 'README.md'}]
+        }
+        repo_url = 'https://github.com/testuser/TestRepo'
+        content = generate_readme_content(data, '', repo_url)
+        self.assertIn(repo_url, content)
+        self.assertIn(f"git clone {repo_url}", content)
+
+
+
+================================================
+FILE: generator/urls.py
+================================================
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('about/', views.about, name='about'),
+    path('edit/', views.edit_readme, name='edit_readme'),
+    path('edit/save/', views.save_readme, name='save_readme'),
+    path('push/', views.push_readme, name='push_readme'),  
+
+]
+
+
+================================================
+FILE: generator/views.py
+================================================
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+from .forms import RepoForm
+from .services import generate_readme
+from .models import Repository
+from markdown import markdown
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def home(request):
+    if request.method == 'POST':
+        form = RepoForm(request.POST)
+        if form.is_valid():
+            try:
+                repo_url = form.cleaned_data['repo_url']
+                user_prompt = form.cleaned_data.get('custom_prompt', '')
+                readme_content = generate_readme(repo_url, user_prompt)
+
+                # Convert to HTML for preview
+                readme_html = markdown(readme_content)
+
+                # Save to database
+                Repository.objects.update_or_create(
+                    url=repo_url,
+                    defaults={'readme_content': readme_content}
+                )
+
+                return render(request, 'result.html', {
+                    'readme': readme_html,           # rendered HTML
+                    'raw_readme': readme_content,    # original markdown
+                    'repo_url': repo_url
+                })
+            except Exception as e:
+                error_msg = str(e)
+                if "404" in error_msg and "license" in error_msg:
+                    messages.warning(request, "License info not found. Generated README without license.")
+                else:
+                    messages.error(request, f"Error: {error_msg}")
+                return redirect('home')
+        else:
+            messages.error(request, "Please enter a valid GitHub repository URL")
+    else:
+        form = RepoForm()
+
+    return render(request, 'home.html', {
+        'form': form,
+        'recent_repos': Repository.objects.order_by('-created_at')[:5]
+    })
+
+@never_cache
+def about(request):
+    return render(request, 'about.html')
+
+
+
+from urllib.parse import unquote
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+@never_cache
+@require_http_methods(["GET"])
+def edit_readme(request):
+    repo_url = unquote(request.GET.get('repo', ''))
+    try:
+        repo = Repository.objects.get(url=repo_url)
+        return render(request, 'edit.html', {
+            'readme_content': repo.readme_content,
+            'repo_url': repo_url
+        })
+    except Repository.DoesNotExist:
+        messages.error(request, "Repository not found")
+        return redirect('home')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def save_readme(request):
+    try:
+        repo_url = request.POST.get('repo_url')
+        content = request.POST.get('readme_content')
+
+        repo = Repository.objects.get(url=repo_url)
+        repo.readme_content = content
+        repo.save()
+
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+
+
+# generator/views.py (add this view)
+from .services import push_to_github
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def push_readme(request):
+    try:
+        repo_url = request.POST.get('repo_url')
+        readme_content = request.POST.get('readme_content')
+        
+        if not repo_url or not readme_content:
+            return JsonResponse({"success": False, "error": "Missing required parameters"})
+            
+        success, message = push_to_github(repo_url, readme_content)
+        
+        if success:
+            return JsonResponse({"success": True, "message": message})
+        else:
+            return JsonResponse({"success": False, "error": message})
+            
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+================================================
+FILE: generator/migrations/0001_initial.py
+================================================
+# Generated by Django 5.2.3 on 2025-06-29 16:03
+
+import django.core.validators
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Repository',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('url', models.URLField(max_length=255, unique=True, validators=[django.core.validators.URLValidator()])),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('readme_content', models.TextField(blank=True)),
+                ('language_stats', models.JSONField(blank=True, default=dict)),
+                ('topics', models.JSONField(blank=True, default=list)),
+            ],
+            options={
+                'verbose_name_plural': 'Repositories',
+                'ordering': ['-created_at'],
+            },
+        ),
+    ]
+
+
+
+================================================
+FILE: generator/migrations/__init__.py
+================================================
+
+
+
+================================================
+FILE: generator/templates/base.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README Generator with Gemini</title>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+    <div>
+        <div>
+            <div>
+                <a href="{% url 'home' %}">
+                    <span>README Generator</span>
+                </a>
+            </div>
+            <div>
+                <a href="{% url 'about' %}">About</a>
+                <span>Powered by Gemini AI</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main>
+    <div>
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div>
+            {% block content %}
+            <div>
+                <div>
+                    <h1>Generate Professional README Files</h1>
+                    <p>Transform your GitHub repositories with AI-powered README generation using Gemini AI</p>
+                    <div>
+                        <input type="text" placeholder="Enter GitHub repository URL...">
+                        <button>Generate</button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div>
+                    <h3>AI-Powered</h3>
+                    <p>Uses Gemini AI to analyze your code and generate documentation</p>
+                </div>
+                <div>
+                    <h3>Professional Quality</h3>
+                    <p>Generates clean, structured README files</p>
+                </div>
+                <div>
+                    <h3>Time-Saving</h3>
+                    <p>Creates documentation in seconds</p>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer>
+    <div>
+        <div>
+            <span>README Generator</span>
+        </div>
+        <div>
+            <p>Powered by Gemini AI & Django</p>
+            <div>
+                <a href="#">Twitter</a>
+                <a href="#">GitHub</a>
+            </div>
+        </div>
+    </div>
+    <div>
+        <p>Â© 2024 README Generator. Built with Django and powered by Google Gemini AI.</p>
+    </div>
+</footer>
+
+</body>
+</html>
+
+
+
+================================================
+FILE: generator/templates/edit.html
+================================================
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <h3>🛠️ Edit & Preview README.md</h3>
+
+    <div>
+        <div>
+            <label>Markdown Code</label>
+            <textarea id="editor">{{ readme_content }}</textarea>
+        </div>
+
+        <div>
+            <label>Live Preview</label>
+            <div id="previewArea">
+                Live preview here...
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <a href="{% url 'home' %}">← Back</a>
+        <div>
+            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
+            <button onclick="saveChanges()">💾 Save Changes</button>
+        </div>
+    </div>
+
+    <div>
+        <a href="{% url 'home' %}">← Back</a>
+        <div>
+            <button onclick="pushToGithub()">Push to GitHub</button>
+            <a href="#" onclick="downloadReadme()">⬇️ Download</a>
+            <button onclick="saveChanges()">💾 Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('previewArea');
+
+    function updatePreview() {
+        preview.innerHTML = marked.parse(editor.value);
+    }
+
+    editor.addEventListener('input', updatePreview);
+    document.addEventListener('DOMContentLoaded', updatePreview);
+
+    function saveChanges() {
+        fetch("{% url 'save_readme' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({
+                'repo_url': '{{ repo_url }}',
+                'readme_content': editor.value
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('✅ README.md saved!');
+              } else {
+                  alert('❌ Error: ' + data.error);
+              }
+          });
+    }
+
+    function downloadReadme() {
+        const blob = new Blob([editor.value], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'README.md';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function pushToGithub() {
+        if (confirm("Are you sure you want to push this README.md to the GitHub repository?")) {
+            fetch("{% url 'push_readme' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'repo_url': '{{ repo_url }}',
+                    'readme_content': editor.value
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('✅ ' + data.message);
+                  } else {
+                      alert('❌ Error: ' + data.error);
+                  }
+              });
+        }
+    }
+</script>
+{% endblock %}
+
+
+
+================================================
+FILE: generator/templates/home.html
+================================================
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div>
+    <!-- Form Section -->
+    <div>
+        <div>
+            <div>
+                <h2>Generate README.md</h2>
+            </div>
+        </div>
+
+        <div>
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Repository URL -->
+                <div>
+                    <label>{{ form.repo_url.label }}</label>
+                    {{ form.repo_url }}
+                    {% if form.repo_url.help_text %}
+                        <p>{{ form.repo_url.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Custom Prompt -->
+                <div>
+                    <label>{{ form.custom_prompt.label }}</label>
+                    {{ form.custom_prompt }}
+                    {% if form.custom_prompt.help_text %}
+                        <p>{{ form.custom_prompt.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <div>
+                    <span>AI-powered generation</span>
+                    <button type="submit">
+                        Generate README
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Repositories -->
+    {% if recent_repos %}
+    <div>
+        <div>
+            <h2>Recently Generated</h2>
+            <span>{{ recent_repos|length }} repositories</span>
+        </div>
+
+        <div>
+            {% for repo in recent_repos %}
+            <div>
+                <div>
+                    <a href="{{ repo.url }}" target="_blank">
+                        {{ repo.url|truncatechars:60 }}
+                    </a>
+                    <div>
+                        <span>{{ repo.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                <div>
+                    <button>View</button>
+                    <a href="{{ repo.url }}" target="_blank">â†—</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Tips -->
+    <div>
+        <div>
+            <h3>Quick Tips</h3>
+            <ul>
+                <li>Use public GitHub repository URLs for best results</li>
+                <li>Add custom prompts to tailor the README</li>
+                <li>The AI analyzes your code structure, dependencies, and documentation</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript (optional, not CSS related) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+
+    form.addEventListener('submit', function() {
+        submitButton.disabled = true;
+        submitButton.innerText = 'Generating...';
+    });
+
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+});
+</script>
+{% endblock %}
+
+
+
+================================================
+FILE: generator/templates/result.html
+================================================
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div>
+        <div>
+            <div>
+                <h2>Generated README.md</h2>
+                <p>AI-powered documentation ready for your repository</p>
+            </div>
+            <div>
+                <button onclick="copyToClipboard()">Copy</button>
+                <a href="{% url 'edit_readme' %}?repo={{ repo_url|urlencode }}">Edit</a>
+                <a href="{{ repo_url }}" target="_blank">View Repo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div>
+        <!-- Preview Section -->
+        <div>
+            <div>
+                <div>
+                    <h3>Preview</h3>
+                    <span>Generated</span>
+                </div>
+                <div>
+                    <div>
+                        {{ readme|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div>
+            <!-- Actions -->
+            <div>
+                <div>
+                    <h3>Actions</h3>
+                </div>
+                <div>
+                    <button onclick="downloadReadme()">Download README.md</button>
+                    <button onclick="pushToGithub()">Push to GitHub</button>
+                    <a href="{% url 'home' %}">Back to Generator</a>
+                </div>
+            </div>
+
+            <!-- Repository Info -->
+            <div>
+                <div>
+                    <h3>Repository</h3>
+                </div>
+                <div>
+                    <p>{{ repo_url|truncatechars:40 }}</p>
+                    <p>Source Repository</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div>
+                <div>
+                    <h3>Generation Stats</h3>
+                </div>
+                <div>
+                    <p>Content Length: {{ raw_readme|length }} chars</p>
+                    <p>Generated: Just now</p>
+                    <p>AI Model: Gemini AI</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raw Markdown -->
+    <div>
+        <div>
+            <h3>Raw Markdown</h3>
+            <button onclick="copyRawMarkdown()">Copy Raw</button>
+        </div>
+        <div>
+            <pre><code>{{ raw_readme }}</code></pre>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" style="display:none;">
+        <div>
+            <div>
+                <div id="modal-icon"></div>
+                <div>
+                    <h3 id="modal-title"></h3>
+                    <p id="modal-message"></p>
+                </div>
+            </div>
+            <div>
+                <button onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    function showNotification(type, title, message) {
+        const modal = document.getElementById('notification-modal');
+        const icon = document.getElementById('modal-icon');
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-message').textContent = message;
+
+        icon.innerHTML = type === 'success'
+            ? '✔️'
+            : '❌';
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('notification-modal').style.display = 'none';
+    }
+
+    function pushToGithub() {
+        const content = `{{ raw_readme|escapejs }}`;
+        const repoUrl = '{{ repo_url|escapejs }}';
+
+        if (confirm("Are you sure you want to push this README.md to the GitHub repository?")) {
+            fetch("{% url 'push_readme' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'repo_url': repoUrl,
+                    'readme_content': content
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      showNotification('success', 'Success!', data.message);
+                  } else {
+                      showNotification('error', 'Error', data.error);
+                  }
+              });
+        }
+    }
+
+    function copyToClipboard() {
+        const el = document.createElement('textarea');
+        el.value = `{{ raw_readme|escapejs }}`;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        alert('Copied!');
+    }
+
+    function copyRawMarkdown() {
+        copyToClipboard();
+    }
+
+    function downloadReadme() {
+        const blob = new Blob([`{{ raw_readme|escapejs }}`], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'README.md';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    </script>
+</div>
+{% endblock %}
+
+
+
+================================================
+FILE: readmegen/__init__.py
+================================================
+
+
+
+================================================
+FILE: readmegen/asgi.py
+================================================
+"""
+ASGI config for readmegen project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'readmegen.settings')
+
+application = get_asgi_application()
+
+
+
+================================================
+FILE: readmegen/settings.py
+================================================
+"""
+Django settings for readmegen project.
+
+Generated by 'django-admin startproject' using Django 5.2.3.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/5.2/ref/settings/
+"""
+
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-&z8-k+&)zz+3xf&6046z295@nvj3addp^cf%@$vimbql2um^$j'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'generator',  # Custom app for README generation
+    'widget_tweaks',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'readmegen.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'readmegen.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Cache settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'readme-gen-cache',
+    }
+}
+
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# readmegen/settings.py
+
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Or 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_SAVE_EVERY_REQUEST = True
+
+
+================================================
+FILE: readmegen/urls.py
+================================================
+"""
+URL configuration for readmegen project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('generator.urls')),  # Include URLs from the generator app
+]
+
+
+
+================================================
+FILE: readmegen/wsgi.py
+================================================
+"""
+WSGI config for readmegen project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'readmegen.settings')
+
+application = get_wsgi_application()
+
+

@@ -71,10 +71,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-6 bg-white dark:bg-github-dark-canvas-default" id="preview-container">
-                    <div class="markdown-body dark:markdown-body-dark" id="markdown-preview">
-                        <!-- Markdown content will be rendered here -->
-                    </div>
+                <div class="p-6 bg-white dark:bg-[#0d1117]" id="preview-container">
+                    <div id="markdown-preview" class="markdown-body dark:markdown-body-dark"></div>
                 </div>
             </div>
         </div>
@@ -203,7 +201,7 @@
         </div>
         <div class="p-6 hidden" id="raw-markdown-content">
             <div class="relative">
-                <pre class="bg-github-dark-canvas-default text-github-dark-fg-default dark:bg-gray-900 dark:text-gray-100 p-6 rounded-lg overflow-x-auto text-sm leading-relaxed border border-github-border-default dark:border-github-dark-border-default custom-scrollbar"><code id="raw-markdown-code">{{ raw_readme }}</code></pre>
+                <pre class="bg-white dark:bg-github-dark-canvas-subtle text-github-fg-default dark:text-github-dark-fg-default p-6 rounded-lg overflow-x-auto text-sm leading-relaxed border border-github-border-default dark:border-github-dark-border-default"><code id="raw-markdown-code">{{ raw_readme }}</code></pre>
                 <div class="absolute top-4 right-4">
                     <button onclick="copyRawMarkdown()" class="github-btn bg-github-dark-canvas-subtle hover:bg-github-dark-canvas-default text-github-dark-fg-muted hover:text-github-dark-fg-default text-xs">
                         <i class="fas fa-copy"></i>
@@ -247,8 +245,13 @@ marked.setOptions({
     highlight: function(code, lang) {
         if (lang && hljs.getLanguage(lang)) {
             try {
-                return hljs.highlight(code, { language: lang }).value;
-            } catch (err) {}
+                return hljs.highlight(code, { 
+                    language: lang,
+                    ignoreIllegals: true
+                }).value;
+            } catch (err) {
+                console.error('Syntax highlighting error:', err);
+            }
         }
         return hljs.highlightAuto(code).value;
     }
@@ -257,23 +260,21 @@ marked.setOptions({
 // Raw markdown content
 const rawMarkdownContent = `{{ raw_readme|escapejs }}`;
 
-// Initialize the page
+// Initialize and watch for changes (same as edit.html)
 document.addEventListener('DOMContentLoaded', function() {
     renderMarkdown();
     handleThemeChange();
     
-    // Start observing theme changes
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            if (mutation.attributeName === 'class') {
                 handleThemeChange();
             }
         });
     });
     
     observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
+        attributes: true
     });
 });
 
@@ -304,13 +305,21 @@ function renderMarkdown() {
 
 function handleThemeChange() {
     const isDark = document.documentElement.classList.contains('dark');
-    const previewArea = document.getElementById('markdown-preview');
+    const preview = document.getElementById('markdown-preview');
     
+    // Toggle GitHub dark mode classes
     if (isDark) {
-        previewArea.classList.add('markdown-body-dark');
+        preview.classList.add('markdown-body-dark');
+        preview.classList.add('dark');
     } else {
-        previewArea.classList.remove('markdown-body-dark');
+        preview.classList.remove('markdown-body-dark');
+        preview.classList.remove('dark');
     }
+    
+    // Re-apply syntax highlighting
+    document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+    });
 }
 
 function showToast(type, title, message) {
@@ -697,6 +706,26 @@ document.addEventListener('click', function(e) {
         max-height: 1000px;
         overflow: visible;
     }
+    /* Dark mode fixes for markdown */
+.dark .markdown-body {
+    --color-canvas-default: #0d1117;
+    --color-canvas-subtle: #161b22;
+    --color-border-default: #30363d;
+    --color-fg-default: #f0f6fc;
+    --color-fg-muted: #7d8590;
+    --color-accent-fg: #58a6ff;
+    --color-success-fg: #3fb950;
+}
+
+/* Fix for code blocks in dark mode */
+.dark .markdown-body pre {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+}
+
+.dark .markdown-body code {
+    background-color: rgba(110,118,129,0.4) !important;
+}
 </style>
 
 {% endblock %}
