@@ -116,52 +116,58 @@ def get_repo_ingestion_summary(repo, max_files=25):
         
     return important_files
 
-def generate_readme_content(repo_data, user_prompt=""):
+def generate_readme_content(repo_data, user_prompt="", repo_url=""):
     """Improved prompt for professional README generation"""
     prompt = f"""
-You are an expert technical writer creating professional GitHub README.md files. 
-Generate a comprehensive, well-structured README for this project:
+You are a professional technical writer specializing in GitHub documentation.
 
-**Repository Information:**
-- Name: {repo_data.get('name')}
-- Description: {repo_data.get('description') or 'No description provided'}
-- Primary Language: {next(iter(repo_data.get('languages', {}).keys()), 'Not specified')}
-- Stars: {repo_data.get('stars', 0)}
-- Forks: {repo_data.get('forks', 0)}
-- License: {repo_data.get('license', 'Not specified')}
+Generate a clean, well-formatted `README.md` file for the following repository:
 
-**Key Files Analysis:**
-{'\n'.join([f"- {f['path']}" for f in repo_data.get('ingestion_summary', []) if isinstance(f, dict)])}
+---
 
-**User Instructions:**
-{user_prompt if user_prompt else "None provided"}
+📁 **Repository Metadata**:
+- **Name**: {repo_data.get('name')}
+- **Description**: {repo_data.get('description') or 'No description provided'}
+- **Languages**: {', '.join(repo_data.get('languages', {}).keys())}
+- **Stars**: ⭐ {repo_data.get('stars', 0)}
+- **Forks**: 🍴 {repo_data.get('forks', 0)}
+- **License**: {repo_data.get('license', 'Not specified')}
+- **GitHub URL**: {repo_url}
 
-**README Requirements:**
-1. **Project Title** - Clear, descriptive name with relevant emoji
-2. **Description** - Detailed project overview (3-5 paragraphs)
-3. **Features** - Bullet points of key features (5-8 items)
-4. **Installation** - Clear setup instructions with code blocks
-5. **Usage** - How to use the project with examples
-6. **Configuration** - Environment variables or settings needed
-7. **Technologies** - Table of technologies used with brief descriptions
-8. **API Reference** - If applicable (section with endpoints)
-9. **Screenshots** - Placeholder section if applicable
-10. **Contributing** - Brief guidelines for contributors
-11. **License** - Clear license information
+---
 
-**Formatting Rules:**
+🧠 **Project Analysis (Key Files)**:
+{chr(10).join([f"- {f['path']}" for f in repo_data.get('ingestion_summary', []) if isinstance(f, dict)])}
+
+---
+
+📝 **User’s Custom Prompt**:
+{user_prompt if user_prompt else 'N/A'}
+
+---
+
+📌 **README Must Include**:
+1. Project title with emoji
+2. Description: 2-4 paragraphs
+3. Features (bullet points)
+4. Installation instructions (include real repo URL: `git clone {repo_url}`)
+5. Usage with code examples
+6. Configuration if needed
+7. Technologies table
+8. Screenshots (placeholder)
+9. Contributing guidelines
+10. License section
+11. Do **not** include folder structure
+
+---
+
+🧾 **Formatting Rules**:
 - Use GitHub-flavored Markdown
-- Include appropriate emojis for section headers
-- Use proper code blocks with syntax highlighting
-- Keep line length under 100 characters
-- Use tables for technology stacks
-- Include placeholder comments for visual elements
-
-**Important:**
-- Do not include folder structure
-- Maintain professional tone
-- Ensure technical accuracy
-- Include all essential sections
+- Emojis in headings
+- Code blocks with language syntax
+- Limit lines to 100 chars
+- Use tables for technologies
+- Clear, professional tone
 """
     
     # Rest of the function remains the same...
@@ -199,7 +205,7 @@ def generate_readme(repo_url, user_prompt=""):
         owner, repo_name = extract_repo_info(repo_url)
         repo_data = get_repo_data(owner, repo_name)
         repo_data['name'] = repo_name
-        readme_content = generate_readme_content(repo_data, user_prompt)
+        readme_content = generate_readme_content(repo_data, user_prompt, repo_url)
         cache.set(cache_key, readme_content, timeout=86400)
         return readme_content
     except Exception as e:
