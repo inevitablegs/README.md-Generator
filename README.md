@@ -30,7 +30,7 @@ This project provides a robust and flexible solution for automating the creation
 2.  Navigate to the project directory:
 
     ```bash
-    cd README.md-Generator
+    cd README.md-Generator 
     ```
 
 3.  Create a virtual environment (recommended):
